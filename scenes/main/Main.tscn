@@ -1,0 +1,126 @@
+[gd_scene load_steps=3 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/MainUI.gd" id="1_mainui"]
+[ext_resource type="Script" path="res://scripts/core/GameManager.gd" id="2_gm"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mainui")
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("2_gm")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.1, 0.14, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "Modern President Simulator"
+
+[node name="TurnLabel" type="Label" parent="VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Turn 1"
+
+[node name="CountryName" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Argentina"
+horizontal_alignment = 1
+
+[node name="StatsPanel" type="PanelContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatsVBox" type="VBoxContainer" parent="VBox/StatsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ApprovalLabel" type="Label" parent="VBox/StatsPanel/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Approval: 48%"
+
+[node name="StabilityLabel" type="Label" parent="VBox/StatsPanel/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Stability: 55%"
+
+[node name="GDPLabel" type="Label" parent="VBox/StatsPanel/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "GDP: 640"
+
+[node name="TreasuryLabel" type="Label" parent="VBox/StatsPanel/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Treasury: 80"
+
+[node name="ArmyLabel" type="Label" parent="VBox/StatsPanel/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Army Power: 0"
+
+[node name="ResourcesLabel" type="Label" parent="VBox/StatsPanel/StatsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Food: 100 | Oil: 50 | Iron: 40"
+
+[node name="Actions" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="NextTurnButton" type="Button" parent="VBox/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 64)
+theme_override_font_sizes/font_size = 22
+text = "Next Turn ▶"
+
+[node name="TaxButton" type="Button" parent="VBox/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 64)
+theme_override_font_sizes/font_size = 18
+text = "Raise Tax"
+
+[node name="InvestButton" type="Button" parent="VBox/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 64)
+theme_override_font_sizes/font_size = 18
+text = "Invest Industry"
