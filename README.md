@@ -9,26 +9,27 @@ Built with **Godot 4** (Android / iOS / Desktop).
 
 ---
 
-## Status — **v0.3 Playable Loop**
+## Status — **v0.4 Full World**
 
 ### Implemented
 - [x] Turn-based simulation
-- [x] Economy (taxes, GDP, treasury, debt, resources, investments)
-- [x] Military (recruit, train, nuclear, maintenance, power)
-- [x] Diplomacy (relations, diplomats, embassies, alliances, peace)
-- [x] Turn-based **battles** with losses and political effects
-- [x] 14 countries
-- [x] Switch playable nation
-- [x] Target selection for diplomacy / war
-- [x] Random events (12 types)
-- [x] Victory conditions (Economic / Military / Ideological)
-- [x] **Save / Load**
+- [x] Economy, Military, Diplomacy, Battles
+- [x] **~130 countries** with population, GDP, army, nuclear status, region
+- [x] Data-driven world: `data/countries.json` + `WorldData.gd`
+- [x] **All nations playable** (Switch Nation cycles the full list)
+- [x] Target any country for diplomacy / war
+- [x] Regional relation bonuses
+- [x] AI for non-player nations
+- [x] Random events, victories, Save/Load
 - [x] Mobile-oriented UI
 
+### Regions covered
+North America · South America · Europe · Asia · Middle East · Africa · Oceania
+
 ### Next
-- [ ] AI countries that act on their own
+- [ ] Country selection menu (list/search)
 - [ ] World map view
-- [ ] Dedicated country selection menu
+- [ ] Stronger AI (wars between AI)
 - [ ] Android export preset
 
 ---
@@ -37,11 +38,24 @@ Built with **Godot 4** (Android / iOS / Desktop).
 
 1. Install [Godot 4.3+](https://godotengine.org/download)
 2. Open `project.godot` → **F5**
-3. Start as Argentina (**Switch Nation** to change)
-4. **◀ Target / Target ▶** to choose who you interact with
-5. Diplomats / Embassy / Alliance / **ATTACK** / Offer Peace
-6. Grow economy & army → **Next Turn**
-7. **Save** / **Load** anytime
+3. Start as Argentina — **Switch Nation** to play any of the ~130 countries
+4. **◀ Target / Target ▶** to cycle all other nations
+5. Diplomacy, war, economy, military actions
+6. **Next Turn** / **Save** / **Load**
+
+---
+
+## Data
+
+Country stats live in:
+
+```
+data/countries.json
+```
+
+Each entry: `id`, `name`, `pop`, `area`, `gdp`, `treasury`, `inf`, `tanks`, `air`, `navy`, `stab`, `appr`, `nuke`, `region`.
+
+Edit this file to add or balance nations without touching code.
 
 ---
 
@@ -49,10 +63,12 @@ Built with **Godot 4** (Android / iOS / Desktop).
 
 | File | Role |
 |------|------|
-| `GameManager.gd` | World, turns, events, battles, save/load |
-| `Battle.gd` | Combat resolution |
-| `Economy.gd` / `Military.gd` / `Diplomacy.gd` | Systems |
-| `MainUI.gd` | UI controller |
+| `data/countries.json` | Full world database |
+| `WorldData.gd` | JSON loader |
+| `GameManager.gd` | Simulation hub |
+| `Battle.gd` | Combat |
+| `AIController.gd` | AI turns |
+| `MainUI.gd` | UI |
 
 ---
 
