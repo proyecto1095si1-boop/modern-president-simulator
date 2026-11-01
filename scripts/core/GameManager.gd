@@ -1,7 +1,7 @@
 class_name GameManager
 extends Node
 
-## Central controller: world, turns, events, battles, diplomacy, save/load, AI.
+## Central controller: full world, turns, events, battles, diplomacy, save/load, AI.
 
 signal turn_started(turn: int)
 signal turn_ended(turn: int)
@@ -22,56 +22,17 @@ var selected_target_id: String = "BR"
 const SAVE_PATH := "user://savegame.json"
 
 func _ready() -> void:
-	_create_sample_world()
+	_create_world()
 	if not player_country and countries.has("AR"):
 		select_country("AR")
+	elif not player_country and countries.size() > 0:
+		select_country(countries.keys()[0])
 	print("[GameManager] World ready with %d countries" % countries.size())
 
-func _create_sample_world() -> void:
-	countries.clear()
-	_add("AR", "Argentina", 46.0, 2780000, 640.0, 85.0, 70, 15, 8, 4, 55.0, 48.0)
-	countries["AR"].economy.agriculture_level = 1.4
-	countries["AR"].economy.farms = 5
-	_add("BR", "Brazil", 215.0, 8516000, 2100.0, 180.0, 200, 45, 20, 8, 52.0, 50.0)
-	_add("CL", "Chile", 19.5, 756000, 320.0, 55.0, 45, 10, 6, 3, 68.0, 60.0)
-	_add("UY", "Uruguay", 3.5, 176000, 75.0, 25.0, 20, 3, 2, 1, 72.0, 65.0)
-	_add("PE", "Peru", 34.0, 1285000, 270.0, 40.0, 55, 8, 4, 2, 50.0, 45.0)
-	_add("CO", "Colombia", 52.0, 1142000, 350.0, 45.0, 60, 12, 5, 3, 48.0, 42.0)
-	_add("MX", "Mexico", 130.0, 1964000, 1400.0, 120.0, 120, 30, 15, 6, 50.0, 47.0)
-	var us = _add("US", "United States", 335.0, 9834000, 27000.0, 2500.0, 480, 220, 140, 40, 60.0, 55.0)
-	us.military.has_nuclear_weapons = true
-	us.military.nuclear_progress = 100.0
-	var cn = _add("CN", "China", 1410.0, 9597000, 18000.0, 1800.0, 900, 350, 200, 50, 65.0, 70.0)
-	cn.military.has_nuclear_weapons = true
-	cn.military.nuclear_progress = 100.0
-	var ru = _add("RU", "Russia", 144.0, 17100000, 1900.0, 300.0, 350, 120, 80, 30, 45.0, 50.0)
-	ru.military.has_nuclear_weapons = true
-	ru.military.nuclear_progress = 100.0
-	_add("DE", "Germany", 84.0, 357000, 4500.0, 400.0, 80, 25, 30, 5, 70.0, 62.0)
-	_add("FR", "France", 68.0, 643000, 3000.0, 280.0, 90, 30, 40, 12, 65.0, 55.0)
-	countries["FR"].military.has_nuclear_weapons = true
-	countries["FR"].military.nuclear_progress = 100.0
-	_add("JP", "Japan", 125.0, 378000, 4200.0, 350.0, 100, 20, 50, 15, 75.0, 60.0)
-	_add("IN", "India", 1400.0, 3287000, 3500.0, 200.0, 500, 150, 80, 20, 55.0, 52.0)
-	countries["IN"].military.has_nuclear_weapons = true
-	countries["IN"].military.nuclear_progress = 100.0
-
-func _add(id: String, name: String, pop: float, territory: float, gdp: float, treasury: float,
-		inf: int, tanks: int, air: int, navy: int, stab: float, appr: float) -> Country:
-	var c = Country.new(id, name)
-	c.population = pop
-	c.territory = territory
-	c.economy.gdp = gdp
-	c.economy.treasury = treasury
-	c.military.infantry = inf
-	c.military.tanks = tanks
-	c.military.aircraft = air
-	c.military.navy = navy
-	c.stability = stab
-	c.approval = appr
-	c.military._recalculate_power()
-	countries[id] = c
-	return c
+func _create_world() -> void:
+	countries = WorldData.load_countries()
+	if countries.is_empty():
+		push_error("GameManager: no countries loaded — check data/countries.json")
 
 func select_country(id: String) -> bool:
 	if not countries.has(id):
@@ -79,9 +40,13 @@ func select_country(id: String) -> bool:
 	player_country = countries[id]
 	game_started = true
 	_setup_player_relations()
+	# Default target: first other country
+	var others = get_other_countries()
+	if not others.is_empty():
+		selected_target_id = others[0].id
 	country_selected.emit(player_country)
 	player_stats_updated.emit()
-	print("[GameManager] Selected nation: %s" % player_country.name)
+	print("[GameManager] Selected nation: %s (%s)" % [player_country.name, player_country.id])
 	return true
 
 func _setup_player_relations() -> void:
@@ -89,17 +54,23 @@ func _setup_player_relations() -> void:
 	for id in countries.keys():
 		if id == p.id:
 			continue
-		var base = 20.0
-		if p.id in ["AR", "BR", "CL", "UY", "PE", "CO"] and id in ["AR", "BR", "CL", "UY", "PE", "CO"]:
-			base = 45.0
-		p.diplomacy.set_relation(id, base + randf_range(-10.0, 15.0))
+		var base = 15.0 + WorldData.get_region_bonus(p.id, id, countries)
+		p.diplomacy.set_relation(id, clampf(base + randf_range(-12.0, 12.0), -80.0, 80.0))
 
 func get_country_list() -> Array:
 	var list: Array = []
 	for c in countries.values():
-		list.append({"id": c.id, "name": c.name, "gdp": c.economy.gdp, "power": c.military.total_power})
+		list.append({"id": c.id, "name": c.name, "gdp": c.economy.gdp, "power": c.military.total_power, "pop": c.population})
 	list.sort_custom(func(a, b): return a.name < b.name)
 	return list
+
+func get_playable_ids() -> Array[String]:
+	# All countries are playable
+	var ids: Array[String] = []
+	for id in countries.keys():
+		ids.append(id)
+	ids.sort()
+	return ids
 
 func get_other_countries() -> Array:
 	var list: Array = []
@@ -107,6 +78,7 @@ func get_other_countries() -> Array:
 		if player_country and c.id == player_country.id:
 			continue
 		list.append(c)
+	list.sort_custom(func(a, b): return a.name < b.name)
 	return list
 
 func set_target(id: String) -> void:
@@ -122,7 +94,6 @@ func next_turn() -> void:
 	print("\n========== TURN %d ==========" % current_turn)
 	for country in countries.values():
 		country.process_turn()
-		# AI decisions for non-player nations
 		AIController.process_country(country, countries, player_country)
 	_try_random_event()
 	_check_victory()
@@ -265,7 +236,7 @@ func save_game() -> bool:
 	if not player_country:
 		return false
 	var data = {
-		"version": 2,
+		"version": 3,
 		"turn": current_turn,
 		"player_id": player_country.id,
 		"target": selected_target_id,
@@ -306,7 +277,7 @@ func save_game() -> bool:
 		return false
 	file.store_string(JSON.stringify(data))
 	file.close()
-	print("[SAVE] Game saved.")
+	print("[SAVE] Game saved (%d countries)." % countries.size())
 	return true
 
 func load_game() -> bool:
@@ -319,7 +290,7 @@ func load_game() -> bool:
 	file.close()
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
-	_create_sample_world()
+	_create_world()
 	current_turn = int(data.get("turn", 1))
 	selected_target_id = str(data.get("target", "BR"))
 	var saved_countries: Dictionary = data.get("countries", {})
@@ -356,7 +327,7 @@ func load_game() -> bool:
 		c.diplomacy.at_war_with = s.get("at_war", [])
 	var pid = str(data.get("player_id", "AR"))
 	select_country(pid)
-	print("[LOAD] Game loaded at turn %d" % current_turn)
+	print("[LOAD] Game loaded at turn %d with %d countries" % [current_turn, countries.size()])
 	player_stats_updated.emit()
 	return true
 
@@ -364,7 +335,7 @@ func _print_player_status() -> void:
 	var c = player_country
 	if not c:
 		return
-	print("Country: %s | Turn: %d" % [c.name, current_turn])
+	print("Country: %s | Turn: %d | World: %d nations" % [c.name, current_turn, countries.size()])
 	print("  Pop: %.1f M | Stability: %.1f | Approval: %.1f" % [c.population, c.stability, c.approval])
 	print("  GDP: %.1f | Treasury: %.1f | Tax: %.0f%% | Debt: %.1f" % [c.economy.gdp, c.economy.treasury, c.economy.tax_rate * 100, c.economy.debt])
 	print("  Army Power: %.0f | Nuclear: %s (%.0f%%)" % [c.military.total_power, str(c.military.has_nuclear_weapons), c.military.nuclear_progress])
