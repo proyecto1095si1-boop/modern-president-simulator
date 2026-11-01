@@ -1,7 +1,7 @@
 class_name GameManager
 extends Node
 
-## Central controller: world, turns, events, battles, diplomacy, save/load.
+## Central controller: world, turns, events, battles, diplomacy, save/load, AI.
 
 signal turn_started(turn: int)
 signal turn_ended(turn: int)
@@ -17,43 +17,36 @@ var countries: Dictionary = {}   # id -> Country
 var last_event: String = ""
 var last_battle_report: String = ""
 var game_started: bool = false
-var selected_target_id: String = "BR"  # default diplomatic/military target
+var selected_target_id: String = "BR"
 
 const SAVE_PATH := "user://savegame.json"
 
 func _ready() -> void:
 	_create_sample_world()
-	# Default player until user selects
 	if not player_country and countries.has("AR"):
 		select_country("AR")
 	print("[GameManager] World ready with %d countries" % countries.size())
 
 func _create_sample_world() -> void:
 	countries.clear()
-	
 	_add("AR", "Argentina", 46.0, 2780000, 640.0, 85.0, 70, 15, 8, 4, 55.0, 48.0)
 	countries["AR"].economy.agriculture_level = 1.4
 	countries["AR"].economy.farms = 5
-	
 	_add("BR", "Brazil", 215.0, 8516000, 2100.0, 180.0, 200, 45, 20, 8, 52.0, 50.0)
 	_add("CL", "Chile", 19.5, 756000, 320.0, 55.0, 45, 10, 6, 3, 68.0, 60.0)
 	_add("UY", "Uruguay", 3.5, 176000, 75.0, 25.0, 20, 3, 2, 1, 72.0, 65.0)
 	_add("PE", "Peru", 34.0, 1285000, 270.0, 40.0, 55, 8, 4, 2, 50.0, 45.0)
 	_add("CO", "Colombia", 52.0, 1142000, 350.0, 45.0, 60, 12, 5, 3, 48.0, 42.0)
 	_add("MX", "Mexico", 130.0, 1964000, 1400.0, 120.0, 120, 30, 15, 6, 50.0, 47.0)
-	
 	var us = _add("US", "United States", 335.0, 9834000, 27000.0, 2500.0, 480, 220, 140, 40, 60.0, 55.0)
 	us.military.has_nuclear_weapons = true
 	us.military.nuclear_progress = 100.0
-	
 	var cn = _add("CN", "China", 1410.0, 9597000, 18000.0, 1800.0, 900, 350, 200, 50, 65.0, 70.0)
 	cn.military.has_nuclear_weapons = true
 	cn.military.nuclear_progress = 100.0
-	
 	var ru = _add("RU", "Russia", 144.0, 17100000, 1900.0, 300.0, 350, 120, 80, 30, 45.0, 50.0)
 	ru.military.has_nuclear_weapons = true
 	ru.military.nuclear_progress = 100.0
-	
 	_add("DE", "Germany", 84.0, 357000, 4500.0, 400.0, 80, 25, 30, 5, 70.0, 62.0)
 	_add("FR", "France", 68.0, 643000, 3000.0, 280.0, 90, 30, 40, 12, 65.0, 55.0)
 	countries["FR"].military.has_nuclear_weapons = true
@@ -97,7 +90,6 @@ func _setup_player_relations() -> void:
 		if id == p.id:
 			continue
 		var base = 20.0
-		# Neighbours / regional bias (simplified)
 		if p.id in ["AR", "BR", "CL", "UY", "PE", "CO"] and id in ["AR", "BR", "CL", "UY", "PE", "CO"]:
 			base = 45.0
 		p.diplomacy.set_relation(id, base + randf_range(-10.0, 15.0))
@@ -124,14 +116,14 @@ func set_target(id: String) -> void:
 func get_target() -> Country:
 	return countries.get(selected_target_id, null)
 
-# ---------- ACTIONS ----------
-
 func next_turn() -> void:
 	if not player_country:
 		return
 	print("\n========== TURN %d ==========" % current_turn)
 	for country in countries.values():
 		country.process_turn()
+		# AI decisions for non-player nations
+		AIController.process_country(country, countries, player_country)
 	_try_random_event()
 	_check_victory()
 	current_turn += 1
@@ -190,8 +182,6 @@ func peace_with_target() -> bool:
 		t.diplomacy.offer_peace(player_country.id)
 		player_stats_updated.emit()
 	return ok
-
-# ---------- EVENTS ----------
 
 func _try_random_event() -> void:
 	if randf() > 0.38:
@@ -264,17 +254,12 @@ func _check_victory() -> void:
 	if not player_country:
 		return
 	var c = player_country
-	# Economic victory
 	if c.economy.gdp >= 8000.0 and c.economy.treasury >= 1500.0:
 		victory_achieved.emit("economic", "Economic Superpower! Your nation dominates world markets.")
-	# Military victory (simplified: very high power)
 	if c.military.total_power >= 15000.0:
 		victory_achieved.emit("military", "Military Hegemony! No nation can challenge your army.")
-	# Stability / soft power
 	if c.stability >= 90.0 and c.approval >= 85.0 and current_turn >= 40:
 		victory_achieved.emit("ideological", "Perfect Society! Your model is admired worldwide.")
-
-# ---------- SAVE / LOAD ----------
 
 func save_game() -> bool:
 	if not player_country:
