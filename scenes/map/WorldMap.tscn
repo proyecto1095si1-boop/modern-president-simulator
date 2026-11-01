@@ -1,0 +1,110 @@
+[gd_scene load_steps=2 format=3 uid="uid://world_map"]
+
+[ext_resource type="Script" path="res://scripts/map/MapController.gd" id="1_map"]
+
+[node name="WorldMap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_map")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.06, 0.92)
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 56.0
+grow_horizontal = 2
+theme_override_constants/separation = 8
+
+[node name="CloseButton" type="Button" parent="TopBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(72, 40)
+text = "Close"
+
+[node name="InfoLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Select a country"
+autowrap_mode = 3
+
+[node name="RegionLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Map"
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 64.0
+offset_right = -4.0
+offset_bottom = -72.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 1
+
+[node name="Canvas" type="Control" parent="Scroll"]
+custom_minimum_size = Vector2(2000, 1100)
+layout_mode = 2
+
+[node name="Ocean" type="ColorRect" parent="Scroll/Canvas"]
+layout_mode = 0
+offset_right = 2000.0
+offset_bottom = 1100.0
+color = Color(0.06, 0.12, 0.22, 1)
+
+[node name="Markers" type="Control" parent="Scroll/Canvas"]
+layout_mode = 0
+offset_right = 2000.0
+offset_bottom = 1100.0
+
+[node name="BottomBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -64.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="SetTargetButton" type="Button" parent="BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Set as Target"
+
+[node name="PlayAsButton" type="Button" parent="BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Play as this"
+
+[node name="LegendLabel" type="Label" parent="BottomBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Blue=You Yellow=Sel Red=War Green=Ally Purple=Nuke"
+autowrap_mode = 3
