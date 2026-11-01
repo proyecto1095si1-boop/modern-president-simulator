@@ -2,107 +2,82 @@
 
 **Open-source mobile strategy game** inspired by *MA 3 – President Simulator* (Oxiwyle).
 
-Become the leader of a modern nation. Manage the economy, build your military, conduct diplomacy, research technologies, and pursue different paths to victory (Military, Economic, Ideological, or Soft Power).
+Become the leader of a modern nation. Manage the economy, build your military, conduct diplomacy, research technologies, and pursue different paths to victory.
 
-Built with **Godot 4** for excellent mobile performance (Android / iOS) and easy cross-platform development.
-
----
-
-## Vision
-
-A deep but approachable geopolitical nation simulator focused on modern-era gameplay:
-
-- **Economy**: Taxes, production of resources (food, oil, iron, uranium...), factories, loans, trade.
-- **Military**: Army recruitment & training, turn-based battles, nuclear program, espionage & sabotage.
-- **Diplomacy**: Alliances, pacts, embassies, UN votes, sanctions, naval blockades.
-- **Development**: Education, infrastructure, science, culture, housing, justice, ideology & religion.
-- **Victory conditions**: Conquer the world, spread your ideology/religion, or dominate economically.
-
-The game is designed to be fully playable offline.
+Built with **Godot 4** for excellent mobile performance (Android / iOS).
 
 ---
 
-## Current Status (v0.1 – Foundation)
+## Current Status — **v0.2 Playable Prototype**
 
-- [x] Repository & project structure
-- [x] Core data models (Country, Resources, Government)
-- [x] Turn-based GameManager skeleton
-- [x] Basic economy simulation loop
-- [ ] Map / country selection
-- [ ] Military system & battles
-- [ ] Diplomacy system
-- [ ] Full UI (mobile-first)
+### Working now
+- [x] Turn-based simulation loop
+- [x] Full Economy system (taxes, GDP, treasury, debt, resources, investments in industry / agriculture / energy / science)
+- [x] Military system (infantry, tanks, aircraft, navy, training, nuclear program, maintenance)
+- [x] Diplomacy data model (relations, alliances, wars)
+- [x] Random events system (economic boom, drought, oil discovery, protests, scandals, etc.)
+- [x] 9 countries in the world (Argentina playable + Brazil, Chile, Uruguay, Peru, USA, China, Russia, Germany)
+- [x] Mobile-oriented UI with all main actions
+- [x] Real-time feedback of stats after every action and turn
+
+### Next priorities
+- [ ] Country selection screen
+- [ ] Interactive diplomacy (improve relations, form alliances, declare war)
+- [ ] Simple turn-based battles
+- [ ] Map view
 - [ ] Save / Load
-- [ ] Events & disasters
-- [ ] Multiple victory paths
+- [ ] More events and disasters
+- [ ] Victory conditions
 
 ---
 
-## Tech Stack
+## How to Play (right now)
 
-- **Engine**: Godot 4.3+
-- **Language**: GDScript (with optional C# later)
-- **Architecture**: Component-based + Event-driven
-- **Data**: JSON / Resource files for countries, technologies, events
-- **Target**: Android (primary), iOS, Desktop, Web
+1. Install [Godot 4.3+](https://godotengine.org/download)
+2. Clone the repo and open `project.godot`
+3. Press **F5**
+4. You start as **Argentina**
+5. Use the buttons:
+   - **Next Turn** → advance time, process economy/military, chance of random event
+   - **Tax + / Tax -** → change tax rate
+   - **Invest Industry / Agri / Energy** → grow production
+   - **Recruit Infantry / Tanks** → expand army (costs money + iron for tanks)
+   - **Train Army** → improve training level
+   - **Nuclear Research** → advance nuclear program
+   - **Take Loan** → get quick money (increases debt)
 
----
-
-## How to Run
-
-1. Install [Godot 4.3 or newer](https://godotengine.org/download)
-2. Clone this repository
-3. Open the project in Godot (`project.godot`)
-4. Press F5 or click Play
+Watch the console for detailed logs each turn.
 
 ---
 
 ## Project Structure
 
 ```
-modern-president-simulator/
-├── project.godot
-├── README.md
-├── docs/
-│   └── design.md
-├── data/
-│   ├── countries/
-│   ├── technologies/
-│   └── events/
-├── scenes/
-│   ├── main/
-│   ├── ui/
-│   └── map/
-├── scripts/
-│   ├── core/
-│   │   ├── GameManager.gd
-│   │   ├── Country.gd
-│   │   ├── Economy.gd
-│   │   ├── Military.gd
-│   │   └── Diplomacy.gd
-│   ├── systems/
-│   └── ui/
-└── assets/
+scripts/core/
+  GameManager.gd   → turns, world, events
+  Country.gd       → nation data
+  Economy.gd       → production, taxes, resources, investments
+  Military.gd      → units, training, nuclear, power calculation
+  Diplomacy.gd     → relations & alliances
+
+scripts/ui/
+  MainUI.gd        → all buttons and labels
+
+scenes/main/
+  Main.tscn        → main playable scene
 ```
 
 ---
 
-## Inspiration & Credits
+## Inspiration
 
-Inspired by:
 - MA 3 – President Simulator (Oxiwyle)
-- Open-source projects: `HAKEEM243/Pr-sident-`, `ArpitPy/nation-simulator`, `Nashet/Prosperity-Wars`, `Gamowy/Civ2025`
+- Open-source projects: HAKEEM243/Pr-sident-, ArpitPy/nation-simulator, Nashet/Prosperity-Wars, Gamowy/Civ2025
 
-This is an independent open-source project and is not affiliated with Oxiwyle Inc.
-
----
-
-## Contributing
-
-Pull requests are welcome! See the roadmap above and open an issue if you want to work on a specific system.
+This is an independent open-source project and is **not** affiliated with Oxiwyle Inc.
 
 ---
 
 ## License
 
-MIT License – free to use, modify and distribute.
+MIT License
