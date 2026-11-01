@@ -1,5 +1,7 @@
 extends Control
 
+const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
+
 @onready var game_manager: GameManager = $GameManager
 
 @onready var turn_label: Label = %TurnLabel
@@ -38,9 +40,11 @@ extends Control
 @onready var save_btn: Button = %SaveButton
 @onready var load_btn: Button = %LoadButton
 @onready var cycle_country_btn: Button = %CycleCountryButton
+@onready var map_btn: Button = %MapButton
 
 var _target_index: int = 0
 var _playable_index: int = 0
+var _map_instance: Control = null
 
 func _ready() -> void:
 	next_turn_btn.pressed.connect(_on_next_turn)
@@ -65,6 +69,7 @@ func _ready() -> void:
 	save_btn.pressed.connect(_on_save)
 	load_btn.pressed.connect(_on_load)
 	cycle_country_btn.pressed.connect(_on_cycle_country)
+	map_btn.pressed.connect(_on_open_map)
 	
 	game_manager.player_stats_updated.connect(_update_ui)
 	game_manager.turn_started.connect(func(t): turn_label.text = "Turn %d" % t)
@@ -72,7 +77,6 @@ func _ready() -> void:
 	game_manager.battle_report.connect(_on_battle)
 	game_manager.victory_achieved.connect(_on_victory)
 	
-	# Sync playable index with starting country
 	var ids = game_manager.get_playable_ids()
 	if game_manager.player_country:
 		var i = ids.find(game_manager.player_country.id)
@@ -82,6 +86,34 @@ func _ready() -> void:
 	_update_target_label()
 	_update_ui()
 	print("[UI] World has %d playable nations" % ids.size())
+
+func _on_open_map() -> void:
+	if _map_instance and is_instance_valid(_map_instance):
+		_map_instance.visible = true
+		if _map_instance.has_method("refresh"):
+			_map_instance.refresh()
+		return
+	_map_instance = MAP_SCENE.instantiate()
+	add_child(_map_instance)
+	_map_instance.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if _map_instance.has_method("setup"):
+		_map_instance.setup(game_manager)
+	_map_instance.close_requested.connect(_on_map_closed)
+	_map_instance.country_clicked.connect(_on_map_country_clicked)
+
+func _on_map_closed() -> void:
+	if _map_instance:
+		_map_instance.visible = false
+	_update_ui()
+
+func _on_map_country_clicked(id: String) -> void:
+	# Keep index in sync when selecting from map
+	var others = game_manager.get_other_countries()
+	for i in range(others.size()):
+		if others[i].id == id:
+			_target_index = i
+			break
+	_update_ui()
 
 func _update_ui() -> void:
 	var c = game_manager.player_country
