@@ -40,11 +40,9 @@ extends Control
 @onready var cycle_country_btn: Button = %CycleCountryButton
 
 var _target_index: int = 0
-var _playable_ids: Array[String] = []
+var _playable_index: int = 0
 
 func _ready() -> void:
-	_playable_ids = ["AR", "BR", "CL", "UY", "PE", "CO", "MX", "DE", "FR", "JP"]
-	
 	next_turn_btn.pressed.connect(_on_next_turn)
 	tax_up_btn.pressed.connect(func(): _change_tax(0.05))
 	tax_down_btn.pressed.connect(func(): _change_tax(-0.05))
@@ -74,14 +72,22 @@ func _ready() -> void:
 	game_manager.battle_report.connect(_on_battle)
 	game_manager.victory_achieved.connect(_on_victory)
 	
+	# Sync playable index with starting country
+	var ids = game_manager.get_playable_ids()
+	if game_manager.player_country:
+		var i = ids.find(game_manager.player_country.id)
+		if i >= 0:
+			_playable_index = i
+	
 	_update_target_label()
 	_update_ui()
+	print("[UI] World has %d playable nations" % ids.size())
 
 func _update_ui() -> void:
 	var c = game_manager.player_country
 	if not c:
 		return
-	country_name.text = c.name
+	country_name.text = "%s  (%d nations)" % [c.name, game_manager.countries.size()]
 	approval_label.text = "Approval: %.0f%%" % c.approval
 	stability_label.text = "Stability: %.0f%%" % c.stability
 	gdp_label.text = "GDP: %.1f B" % c.economy.gdp
@@ -106,7 +112,10 @@ func _update_target_label() -> void:
 		target_label.text = "Target: —"
 		return
 	var status = game_manager.player_country.diplomacy.get_status_text(t.id)
-	target_label.text = "Target: %s | %s | Power %.0f" % [t.name, status, t.military.total_power]
+	var total = game_manager.get_other_countries().size()
+	target_label.text = "Target: %s | %s | Power %.0f  [%d/%d]" % [
+		t.name, status, t.military.total_power, _target_index + 1, total
+	]
 
 func _on_next_turn() -> void:
 	game_manager.next_turn()
@@ -189,16 +198,16 @@ func _on_load() -> void:
 	_update_ui()
 
 func _on_cycle_country() -> void:
-	if _playable_ids.is_empty():
+	var ids = game_manager.get_playable_ids()
+	if ids.is_empty():
 		return
-	var current = game_manager.player_country.id if game_manager.player_country else "AR"
-	var idx = _playable_ids.find(current)
-	idx = (idx + 1) % _playable_ids.size()
-	game_manager.select_country(_playable_ids[idx])
+	_playable_index = (_playable_index + 1) % ids.size()
+	game_manager.select_country(ids[_playable_index])
 	var others = game_manager.get_other_countries()
 	if not others.is_empty():
 		_target_index = 0
 		game_manager.set_target(others[0].id)
+	print("Now playing: %s (%d/%d)" % [game_manager.player_country.name, _playable_index + 1, ids.size()])
 	_update_ui()
 
 func _on_event(title: String, description: String) -> void:
