@@ -80,6 +80,7 @@ func _ready() -> void:
 	game_manager.event_occurred.connect(_on_event)
 	game_manager.battle_report.connect(_on_battle)
 	game_manager.victory_achieved.connect(_on_victory)
+	game_manager.achievement_unlocked.connect(func(title): _flash("★ Achievement: %s" % title))
 	if ProjectSettings.get_setting("game/load_on_start", false):
 		ProjectSettings.set_setting("game/load_on_start", false)
 		game_manager.load_game()
@@ -142,22 +143,16 @@ func _show_tab(name: String) -> void:
 	_highlight_tabs()
 
 func _highlight_tabs() -> void:
-	var tabs = {
-		"overview": tab_overview, "economy": tab_economy, "military": tab_military,
-		"diplo": tab_diplo, "gov": tab_gov
-	}
+	var tabs = {"overview": tab_overview, "economy": tab_economy, "military": tab_military, "diplo": tab_diplo, "gov": tab_gov}
 	for k in tabs:
 		var b: Button = tabs[k]
-		if k == _current_tab:
-			b.modulate = Color(1.0, 0.92, 0.55)
-		else:
-			b.modulate = Color(0.75, 0.8, 0.9)
+		b.modulate = Color(1.0, 0.92, 0.55) if k == _current_tab else Color(0.75, 0.8, 0.9)
 
 func _flash(msg: String, ok: bool = true) -> void:
 	feedback_label.text = msg
 	feedback_label.modulate = Color(0.5, 1.0, 0.65) if ok else Color(1.0, 0.45, 0.4)
 	var tw = create_tween()
-	tw.tween_property(feedback_label, "modulate", Color.WHITE, 0.8)
+	tw.tween_property(feedback_label, "modulate", Color.WHITE, 0.85)
 
 func _update_ui() -> void:
 	var c = game_manager.player_country
@@ -181,14 +176,13 @@ func _update_ui() -> void:
 	for m in c.cabinet.list_hired():
 		cab_parts.append("%s %.1f" % [m.role_name(), m.skill])
 	cabinet_label.text = "Cabinet (%d/7): %s" % [c.cabinet.ministers.size(), ", ".join(cab_parts) if cab_parts.size() else "empty"]
-	# Candidates preview
 	var lines: Array[String] = []
 	for cand in game_manager.minister_candidates:
 		if cand is Minister and not c.cabinet.has_role(cand.role):
-			lines.append("%s — %s  skill %.1f  $%.1f" % [cand.display_name, cand.role_name(), cand.skill, cand.salary])
-		if lines.size() >= 5:
+			lines.append("%s — %s  skill %.1f  $%.1f/turn" % [cand.display_name, cand.role_name(), cand.skill, cand.salary])
+		if lines.size() >= 6:
 			break
-	candidates_label.text = "Available:\n" + ("\n".join(lines) if lines.size() else "All roles filled or none left")
+	candidates_label.text = "Available:\n" + ("\n".join(lines) if lines.size() else "All roles filled")
 	_update_target_label()
 
 func _update_target_label() -> void:
@@ -198,17 +192,16 @@ func _update_target_label() -> void:
 		return
 	var status = game_manager.player_country.diplomacy.get_status_text(t.id)
 	var total = maxi(game_manager.get_other_countries().size(), 1)
-	target_label.text = "%s  |  %s  |  Power %.0f  [%d/%d]" % [
-		t.name, status, t.military.total_power, _target_index + 1, total]
+	target_label.text = "%s  |  %s  |  Power %.0f  [%d/%d]" % [t.name, status, t.military.total_power, _target_index + 1, total]
 
 func _on_next_turn() -> void:
 	game_manager.next_turn()
-	_flash("Turn advanced. AI and events resolved.")
+	_flash("Turn advanced")
 
 func _change_tax(delta: float) -> void:
 	var eco = game_manager.player_country.economy
 	eco.set_tax_rate(eco.tax_rate + delta)
-	_flash("Tax rate → %.0f%%" % (eco.tax_rate * 100))
+	_flash("Tax → %.0f%%" % (eco.tax_rate * 100))
 	_update_ui()
 
 func _invest(type: String) -> void:
@@ -231,15 +224,13 @@ func _recruit(type: String) -> void:
 	_update_ui()
 
 func _on_train() -> void:
-	var c = game_manager.player_country
-	var ok = c.military.train_army(1.0, c.economy)
-	_flash("Train army: %s" % ("OK" if ok else "FAIL"), ok)
+	var ok = game_manager.player_country.military.train_army(1.0, game_manager.player_country.economy)
+	_flash("Train: %s" % ("OK" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_nuclear() -> void:
-	var c = game_manager.player_country
-	var ok = c.military.invest_nuclear(15.0, c.economy)
-	_flash("Nuclear program: %s" % ("OK" if ok else "FAIL"), ok)
+	var ok = game_manager.player_country.military.invest_nuclear(15.0, game_manager.player_country.economy)
+	_flash("Nuclear: %s" % ("OK" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_loan() -> void:
@@ -249,7 +240,7 @@ func _on_loan() -> void:
 
 func _on_hire() -> void:
 	var msg = game_manager.hire_first_available_minister()
-	_flash(msg, not msg.begins_with("Need") and not msg.begins_with("Cabinet"))
+	_flash(msg, msg.begins_with("Hired"))
 	_update_ui()
 
 func _dev(sector: String) -> void:
@@ -298,9 +289,8 @@ func _on_embassy() -> void:
 	_update_ui()
 
 func _on_attack() -> void:
-	var report = game_manager.attack_target()
-	battle_label.text = report
-	_flash("Battle resolved", true)
+	battle_label.text = game_manager.attack_target()
+	_flash("Battle resolved")
 	_update_ui()
 
 func _on_peace() -> void:
@@ -309,12 +299,11 @@ func _on_peace() -> void:
 	_update_ui()
 
 func _on_save() -> void:
-	var ok = game_manager.save_game()
-	_flash("Game saved" if ok else "Save failed", ok)
+	_flash("Saved" if game_manager.save_game() else "Save failed", true)
 
 func _on_load() -> void:
 	var ok = game_manager.load_game()
-	_flash("Game loaded" if ok else "No save", ok)
+	_flash("Loaded" if ok else "No save", ok)
 	_update_ui()
 
 func _on_cycle_country() -> void:
@@ -327,7 +316,7 @@ func _on_cycle_country() -> void:
 	if not others.is_empty():
 		_target_index = 0
 		game_manager.set_target(others[0].id)
-	_flash("Now playing as %s" % game_manager.player_country.name)
+	_flash("Playing as %s" % game_manager.player_country.name)
 	_update_ui()
 
 func _on_open_map() -> void:
