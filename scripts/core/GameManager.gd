@@ -8,6 +8,7 @@ signal event_occurred(title: String, description: String)
 signal battle_report(report: String)
 signal country_selected(country: Country)
 signal victory_achieved(type: String, message: String)
+signal achievement_unlocked(title: String)
 
 var current_turn: int = 1
 var player_country: Country = null
@@ -17,11 +18,13 @@ var last_battle_report: String = ""
 var game_started: bool = false
 var selected_target_id: String = "BR"
 var minister_candidates: Array = []
+var achievements: Achievements = Achievements.new()
 
 const SAVE_PATH := "user://savegame.json"
 
 func _ready() -> void:
 	_create_world()
+	achievements.unlocked.connect(func(_id, title): achievement_unlocked.emit(title))
 	var start_id = "AR"
 	if ProjectSettings.has_setting("game/start_country"):
 		start_id = str(ProjectSettings.get_setting("game/start_country"))
@@ -100,6 +103,7 @@ func hire_first_available_minister() -> String:
 				return "Need more treasury to hire"
 			player_country.economy.treasury -= cand.salary
 			player_country.cabinet.hire(cand)
+			achievements.check(player_country, current_turn)
 			player_stats_updated.emit()
 			return "Hired %s as %s (skill %.1f)" % [cand.display_name, cand.role_name(), cand.skill]
 	return "Cabinet full or no candidates"
@@ -109,6 +113,7 @@ func invest_development(sector: String) -> bool:
 		return false
 	var ok = player_country.development.invest(sector, 12.0, player_country.economy)
 	if ok:
+		achievements.check(player_country, current_turn)
 		player_stats_updated.emit()
 	return ok
 
@@ -121,11 +126,11 @@ func next_turn() -> void:
 		AIController.process_country(country, countries, player_country)
 	_try_random_event()
 	_check_victory()
+	achievements.check(player_country, current_turn)
 	current_turn += 1
 	turn_ended.emit(current_turn - 1)
 	turn_started.emit(current_turn)
 	player_stats_updated.emit()
-	_print_player_status()
 
 func attack_target() -> String:
 	var target = get_target()
@@ -254,7 +259,7 @@ func _check_victory() -> void:
 func save_game() -> bool:
 	if not player_country:
 		return false
-	var data = {"version": 4, "turn": current_turn, "player_id": player_country.id, "target": selected_target_id, "countries": {}}
+	var data = {"version": 5, "turn": current_turn, "player_id": player_country.id, "target": selected_target_id, "achievements": achievements.unlocked_ids, "countries": {}}
 	for id in countries.keys():
 		var c: Country = countries[id]
 		data.countries[id] = {
@@ -287,6 +292,10 @@ func load_game() -> bool:
 	_create_world()
 	current_turn = int(data.get("turn", 1))
 	selected_target_id = str(data.get("target", "BR"))
+	var ach: Array = data.get("achievements", [])
+	achievements.unlocked_ids.clear()
+	for a in ach:
+		achievements.unlocked_ids.append(str(a))
 	var saved: Dictionary = data.get("countries", {})
 	for id in saved.keys():
 		if not countries.has(id):
@@ -328,11 +337,3 @@ func load_game() -> bool:
 	select_country(str(data.get("player_id", "AR")))
 	player_stats_updated.emit()
 	return true
-
-func _print_player_status() -> void:
-	var c = player_country
-	if not c:
-		return
-	print("Country: %s | Turn: %d" % [c.name, current_turn])
-	print("  Dev: %s" % c.development.summary_line())
-	print("  Cabinet posts: %d | Salary/turn: %.1f" % [c.cabinet.ministers.size(), c.cabinet.total_salary()])
