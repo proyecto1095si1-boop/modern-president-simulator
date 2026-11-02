@@ -1,30 +1,29 @@
-# Modern President Simulator — v0.8
+# Modern President Simulator — v0.9
 
-Open-source Godot 4 geopolitical strategy (inspired by MA 3).
+Open-source Godot 4 geopolitical strategy inspired by MA 3.
 
 **https://github.com/proyecto1095si1-boop/modern-president-simulator**
 
-## Honest status
+## Status (honest)
 
-| Layer | Estimate |
-|-------|----------|
-| Systems architecture | ~65% |
-| Playable session feel | ~50% (up from ~40% after tabs + feedback) |
-| vs commercial MA 3 depth | ~35–40% |
+| Layer | ~% |
+|-------|-----|
+| Architecture | 70 |
+| Session feel | 55 |
+| vs MA 3 commercial | 40 |
 
-## v0.8 changes
+## v0.9 highlights
 
-- **Tab UI**: Overview · Economy · Military · Diplo · Gov
-- **Feedback bar** with color flash on every action
-- **Cabinet panel** lists available minister candidates
-- **Achievements** (first minister, nuclear, popular, etc.)
-- Bottom bar: Next Turn · MAP · Save · Load · Switch
+- **Tutorial** first-run overlay (3 steps)
+- **Region filters** + difficulty tags on country select
+- **Military**: aircraft, navy, defense investments
+- **Intel**: Recon + Sabotage
+- **UN**: Condemn / Sanctions resolutions (world vote)
+- Tabs, feedback bar, achievements, cabinet, trade, map
 
 ## Run
 
-Godot **4.3+** → open project → **F5**
-
-New Game → pick country → use tabs → Next Turn
+Godot **4.3+** → F5 → New Game
 
 ## License
 
