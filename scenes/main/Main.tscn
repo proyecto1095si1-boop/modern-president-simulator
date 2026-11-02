@@ -285,32 +285,56 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 48)
 text = "+Infantry"
 
 [node name="RecruitTankButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow1"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 48)
 text = "+Tanks"
 
 [node name="MilRow2" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelMilitary"]
 layout_mode = 2
 
-[node name="TrainButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow2"]
+[node name="RecruitAirButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 52)
-text = "Train Army"
+custom_minimum_size = Vector2(0, 48)
+text = "+Aircraft"
 
-[node name="NuclearButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow2"]
+[node name="RecruitNavyButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 52)
-text = "Nuclear R&D"
+custom_minimum_size = Vector2(0, 48)
+text = "+Navy"
+
+[node name="MilRow3" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelMilitary"]
+layout_mode = 2
+
+[node name="TrainButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Train"
+
+[node name="NuclearButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Nuclear"
+
+[node name="DefenseButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Defense"
 
 [node name="PanelDiplo" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
 unique_name_in_owner = true
@@ -388,6 +412,44 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 52)
 text = "Peace"
+
+[node name="IntelTitle" type="Label" parent="RootVBox/Scroll/Content/PanelDiplo"]
+layout_mode = 2
+text = "Intel & UN"
+
+[node name="IntelRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelDiplo"]
+layout_mode = 2
+
+[node name="ReconButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/IntelRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Recon"
+
+[node name="SabotageButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/IntelRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Sabotage"
+
+[node name="UNRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelDiplo"]
+layout_mode = 2
+
+[node name="UNCondemnButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/UNRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 46)
+text = "UN Condemn"
+
+[node name="UNSanctionsButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/UNRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 46)
+text = "UN Sanctions"
 
 [node name="PanelGov" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
 unique_name_in_owner = true
@@ -516,3 +578,46 @@ layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 56)
 text = "Switch"
+
+[node name="TutorialOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.02, 0.03, 0.06, 0.88)
+
+[node name="TutBox" type="VBoxContainer" parent="TutorialOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -200.0
+offset_right = 280.0
+offset_bottom = 200.0
+theme_override_constants/separation = 16
+
+[node name="TutTitle" type="Label" parent="TutorialOverlay/TutBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Tutorial"
+horizontal_alignment = 1
+
+[node name="TutBody" type="Label" parent="TutorialOverlay/TutBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Body"
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="TutNext" type="Button" parent="TutorialOverlay/TutBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "Next"
