@@ -1,8 +1,6 @@
 class_name GameManager
 extends Node
 
-## Central controller: full world, turns, events, battles, diplomacy, save/load, AI.
-
 signal turn_started(turn: int)
 signal turn_ended(turn: int)
 signal player_stats_updated
@@ -13,26 +11,33 @@ signal victory_achieved(type: String, message: String)
 
 var current_turn: int = 1
 var player_country: Country = null
-var countries: Dictionary = {}   # id -> Country
+var countries: Dictionary = {}
 var last_event: String = ""
 var last_battle_report: String = ""
 var game_started: bool = false
 var selected_target_id: String = "BR"
+var minister_candidates: Array = []
 
 const SAVE_PATH := "user://savegame.json"
 
 func _ready() -> void:
 	_create_world()
-	if not player_country and countries.has("AR"):
+	var start_id = "AR"
+	if ProjectSettings.has_setting("game/start_country"):
+		start_id = str(ProjectSettings.get_setting("game/start_country"))
+	if countries.has(start_id):
+		select_country(start_id)
+	elif countries.has("AR"):
 		select_country("AR")
-	elif not player_country and countries.size() > 0:
+	elif countries.size() > 0:
 		select_country(countries.keys()[0])
+	minister_candidates = Cabinet.generate_candidates()
 	print("[GameManager] World ready with %d countries" % countries.size())
 
 func _create_world() -> void:
 	countries = WorldData.load_countries()
 	if countries.is_empty():
-		push_error("GameManager: no countries loaded — check data/countries.json")
+		push_error("GameManager: no countries loaded")
 
 func select_country(id: String) -> bool:
 	if not countries.has(id):
@@ -40,13 +45,12 @@ func select_country(id: String) -> bool:
 	player_country = countries[id]
 	game_started = true
 	_setup_player_relations()
-	# Default target: first other country
 	var others = get_other_countries()
 	if not others.is_empty():
 		selected_target_id = others[0].id
+	minister_candidates = Cabinet.generate_candidates()
 	country_selected.emit(player_country)
 	player_stats_updated.emit()
-	print("[GameManager] Selected nation: %s (%s)" % [player_country.name, player_country.id])
 	return true
 
 func _setup_player_relations() -> void:
@@ -65,7 +69,6 @@ func get_country_list() -> Array:
 	return list
 
 func get_playable_ids() -> Array[String]:
-	# All countries are playable
 	var ids: Array[String] = []
 	for id in countries.keys():
 		ids.append(id)
@@ -87,6 +90,27 @@ func set_target(id: String) -> void:
 
 func get_target() -> Country:
 	return countries.get(selected_target_id, null)
+
+func hire_first_available_minister() -> String:
+	if not player_country:
+		return "No country"
+	for cand in minister_candidates:
+		if cand is Minister and not player_country.cabinet.has_role(cand.role):
+			if player_country.economy.treasury < cand.salary * 2.0:
+				return "Need more treasury to hire"
+			player_country.economy.treasury -= cand.salary
+			player_country.cabinet.hire(cand)
+			player_stats_updated.emit()
+			return "Hired %s as %s (skill %.1f)" % [cand.display_name, cand.role_name(), cand.skill]
+	return "Cabinet full or no candidates"
+
+func invest_development(sector: String) -> bool:
+	if not player_country:
+		return false
+	var ok = player_country.development.invest(sector, 12.0, player_country.economy)
+	if ok:
+		player_stats_updated.emit()
+	return ok
 
 func next_turn() -> void:
 	if not player_country:
@@ -113,14 +137,16 @@ func attack_target() -> String:
 	last_battle_report = result.report
 	battle_report.emit(result.report)
 	player_stats_updated.emit()
-	print("[BATTLE] %s" % result.report)
 	return result.report
 
 func diplomats_to_target() -> bool:
 	var t = get_target()
 	if not t or not player_country:
 		return false
+	var bonus = player_country.cabinet.skill_of(Minister.Role.FOREIGN)
 	var ok = player_country.diplomacy.send_diplomats(t.id, player_country.economy)
+	if ok and bonus > 1.0:
+		player_country.diplomacy.improve_relation(t.id, (bonus - 1.0) * 3.0)
 	if ok:
 		player_stats_updated.emit()
 	return ok
@@ -170,122 +196,90 @@ func _try_random_event() -> void:
 		{"title": "Refugee Crisis", "desc": "Influx of refugees strains resources.", "effect": "refugees"},
 		{"title": "Cyber Attack", "desc": "Critical infrastructure was attacked.", "effect": "cyber"},
 		{"title": "Olympic Success", "desc": "Athletes bring national pride.", "effect": "olympics"},
+		{"title": "Earthquake", "desc": "Natural disaster damages infrastructure.", "effect": "quake"},
 	]
 	var e = events[randi() % events.size()]
 	last_event = e.title + ": " + e.desc
 	_apply_event(e.effect)
 	event_occurred.emit(e.title, e.desc)
-	print("[EVENT] %s - %s" % [e.title, e.desc])
 
 func _apply_event(effect: String) -> void:
 	var c = player_country
 	match effect:
 		"boom":
-			c.economy.gdp += 12.0
-			c.economy.treasury += 15.0
-			c.approval = minf(c.approval + 4.0, 100.0)
+			c.economy.gdp += 12.0; c.economy.treasury += 15.0; c.approval = minf(c.approval + 4.0, 100.0)
 		"drought":
-			c.economy.food = maxf(c.economy.food - 30.0, 0.0)
-			c.economy.agriculture_level = maxf(c.economy.agriculture_level - 0.1, 0.5)
-			c.stability = maxf(c.stability - 5.0, 0.0)
+			c.economy.food = maxf(c.economy.food - 30.0, 0.0); c.stability = maxf(c.stability - 5.0, 0.0)
 		"oil":
-			c.economy.oil += 40.0
-			c.economy.energy_level += 0.25
-			c.economy.treasury += 10.0
+			c.economy.oil += 40.0; c.economy.energy_level += 0.25; c.economy.treasury += 10.0
 		"protests":
-			c.approval = maxf(c.approval - 8.0, 0.0)
-			c.stability = maxf(c.stability - 6.0, 0.0)
+			c.approval = maxf(c.approval - 8.0, 0.0); c.stability = maxf(c.stability - 6.0, 0.0)
 		"tech":
-			c.economy.science_level += 0.2
-			c.approval = minf(c.approval + 3.0, 100.0)
+			c.economy.science_level += 0.2; c.development.science += 0.1
 		"fdi":
-			c.economy.industry_level += 0.15
-			c.economy.treasury += 18.0
+			c.economy.industry_level += 0.15; c.economy.treasury += 18.0
 		"drill":
-			c.military.training_level = minf(c.military.training_level + 0.15, 3.5)
-			c.military._recalculate_power()
+			c.military.training_level = minf(c.military.training_level + 0.15, 3.5); c.military._recalculate_power()
 		"scandal":
-			c.approval = maxf(c.approval - 10.0, 0.0)
-			c.stability = maxf(c.stability - 4.0, 0.0)
+			var mit = 1.0 - (c.cabinet.skill_of(Minister.Role.JUSTICE) - 1.0) * 0.2
+			c.approval = maxf(c.approval - 10.0 * mit, 0.0)
 		"trade":
-			c.economy.treasury += 12.0
-			c.economy.gdp += 5.0
+			c.economy.treasury += 12.0; c.economy.gdp += 5.0
 		"refugees":
-			c.population += 0.3
-			c.economy.food = maxf(c.economy.food - 15.0, 0.0)
-			c.stability = maxf(c.stability - 3.0, 0.0)
+			c.population += 0.3; c.economy.food = maxf(c.economy.food - 15.0, 0.0)
 		"cyber":
 			c.economy.gdp = maxf(c.economy.gdp - 8.0, 5.0)
-			c.stability = maxf(c.stability - 4.0, 0.0)
 		"olympics":
-			c.approval = minf(c.approval + 8.0, 100.0)
-			c.stability = minf(c.stability + 3.0, 100.0)
+			c.approval = minf(c.approval + 8.0, 100.0); c.development.sports += 0.15
+		"quake":
+			c.development.infrastructure = maxf(c.development.infrastructure - 0.2, 0.5)
+			c.economy.treasury = maxf(c.economy.treasury - 20.0, 0.0)
+			c.stability = maxf(c.stability - 8.0, 0.0)
 
 func _check_victory() -> void:
 	if not player_country:
 		return
 	var c = player_country
 	if c.economy.gdp >= 8000.0 and c.economy.treasury >= 1500.0:
-		victory_achieved.emit("economic", "Economic Superpower! Your nation dominates world markets.")
+		victory_achieved.emit("economic", "Economic Superpower!")
 	if c.military.total_power >= 15000.0:
-		victory_achieved.emit("military", "Military Hegemony! No nation can challenge your army.")
-	if c.stability >= 90.0 and c.approval >= 85.0 and current_turn >= 40:
-		victory_achieved.emit("ideological", "Perfect Society! Your model is admired worldwide.")
+		victory_achieved.emit("military", "Military Hegemony!")
+	if c.development.religion_influence >= 95.0 and current_turn >= 30:
+		victory_achieved.emit("religious", "Your faith spans the globe!")
+	if c.development.ideology_score >= 95.0 and c.stability >= 85.0 and current_turn >= 35:
+		victory_achieved.emit("ideological", "Perfect Society achieved!")
+	if c.stability >= 90.0 and c.approval >= 85.0 and current_turn >= 50:
+		victory_achieved.emit("legacy", "Beloved leader of a golden age.")
 
 func save_game() -> bool:
 	if not player_country:
 		return false
-	var data = {
-		"version": 3,
-		"turn": current_turn,
-		"player_id": player_country.id,
-		"target": selected_target_id,
-		"countries": {}
-	}
+	var data = {"version": 4, "turn": current_turn, "player_id": player_country.id, "target": selected_target_id, "countries": {}}
 	for id in countries.keys():
 		var c: Country = countries[id]
 		data.countries[id] = {
-			"name": c.name,
-			"population": c.population,
-			"stability": c.stability,
-			"approval": c.approval,
-			"gdp": c.economy.gdp,
-			"treasury": c.economy.treasury,
-			"tax_rate": c.economy.tax_rate,
-			"debt": c.economy.debt,
-			"food": c.economy.food,
-			"oil": c.economy.oil,
-			"iron": c.economy.iron,
-			"uranium": c.economy.uranium,
-			"industry": c.economy.industry_level,
-			"agriculture": c.economy.agriculture_level,
-			"energy": c.economy.energy_level,
-			"science": c.economy.science_level,
-			"infantry": c.military.infantry,
-			"tanks": c.military.tanks,
-			"aircraft": c.military.aircraft,
-			"navy": c.military.navy,
-			"training": c.military.training_level,
-			"nuclear": c.military.nuclear_progress,
-			"has_nuke": c.military.has_nuclear_weapons,
-			"relations": c.diplomacy.relations.duplicate(),
-			"alliances": c.diplomacy.alliances.duplicate(),
-			"at_war": c.diplomacy.at_war_with.duplicate(),
+			"population": c.population, "stability": c.stability, "approval": c.approval,
+			"gdp": c.economy.gdp, "treasury": c.economy.treasury, "tax_rate": c.economy.tax_rate, "debt": c.economy.debt,
+			"food": c.economy.food, "oil": c.economy.oil, "iron": c.economy.iron, "uranium": c.economy.uranium,
+			"industry": c.economy.industry_level, "agriculture": c.economy.agriculture_level,
+			"energy": c.economy.energy_level, "science": c.economy.science_level,
+			"infantry": c.military.infantry, "tanks": c.military.tanks, "aircraft": c.military.aircraft, "navy": c.military.navy,
+			"training": c.military.training_level, "nuclear": c.military.nuclear_progress, "has_nuke": c.military.has_nuclear_weapons,
+			"relations": c.diplomacy.relations.duplicate(), "alliances": c.diplomacy.alliances.duplicate(), "at_war": c.diplomacy.at_war_with.duplicate(),
+			"edu": c.development.education, "infra": c.development.infrastructure, "cult": c.development.culture,
+			"just": c.development.justice, "rel": c.development.religion_influence, "ideo": c.development.ideology_score,
 		}
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if not file:
 		return false
 	file.store_string(JSON.stringify(data))
 	file.close()
-	print("[SAVE] Game saved (%d countries)." % countries.size())
 	return true
 
 func load_game() -> bool:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return false
 	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
-	if not file:
-		return false
 	var data = JSON.parse_string(file.get_as_text())
 	file.close()
 	if typeof(data) != TYPE_DICTIONARY:
@@ -293,11 +287,11 @@ func load_game() -> bool:
 	_create_world()
 	current_turn = int(data.get("turn", 1))
 	selected_target_id = str(data.get("target", "BR"))
-	var saved_countries: Dictionary = data.get("countries", {})
-	for id in saved_countries.keys():
+	var saved: Dictionary = data.get("countries", {})
+	for id in saved.keys():
 		if not countries.has(id):
 			continue
-		var s: Dictionary = saved_countries[id]
+		var s: Dictionary = saved[id]
 		var c: Country = countries[id]
 		c.population = float(s.get("population", c.population))
 		c.stability = float(s.get("stability", 50))
@@ -325,9 +319,13 @@ func load_game() -> bool:
 		c.diplomacy.relations = s.get("relations", {})
 		c.diplomacy.alliances = s.get("alliances", [])
 		c.diplomacy.at_war_with = s.get("at_war", [])
-	var pid = str(data.get("player_id", "AR"))
-	select_country(pid)
-	print("[LOAD] Game loaded at turn %d with %d countries" % [current_turn, countries.size()])
+		c.development.education = float(s.get("edu", 1))
+		c.development.infrastructure = float(s.get("infra", 1))
+		c.development.culture = float(s.get("cult", 1))
+		c.development.justice = float(s.get("just", 1))
+		c.development.religion_influence = float(s.get("rel", 30))
+		c.development.ideology_score = float(s.get("ideo", 50))
+	select_country(str(data.get("player_id", "AR")))
 	player_stats_updated.emit()
 	return true
 
@@ -335,12 +333,6 @@ func _print_player_status() -> void:
 	var c = player_country
 	if not c:
 		return
-	print("Country: %s | Turn: %d | World: %d nations" % [c.name, current_turn, countries.size()])
-	print("  Pop: %.1f M | Stability: %.1f | Approval: %.1f" % [c.population, c.stability, c.approval])
-	print("  GDP: %.1f | Treasury: %.1f | Tax: %.0f%% | Debt: %.1f" % [c.economy.gdp, c.economy.treasury, c.economy.tax_rate * 100, c.economy.debt])
-	print("  Army Power: %.0f | Nuclear: %s (%.0f%%)" % [c.military.total_power, str(c.military.has_nuclear_weapons), c.military.nuclear_progress])
-	print("  Resources → Food: %.0f | Oil: %.0f | Iron: %.0f | Uranium: %.1f" % [c.economy.food, c.economy.oil, c.economy.iron, c.economy.uranium])
-	if last_event != "":
-		print("  Last Event: %s" % last_event)
-	if last_battle_report != "":
-		print("  Last Battle: %s" % last_battle_report)
+	print("Country: %s | Turn: %d" % [c.name, current_turn])
+	print("  Dev: %s" % c.development.summary_line())
+	print("  Cabinet posts: %d | Salary/turn: %.1f" % [c.cabinet.ministers.size(), c.cabinet.total_salary()])
