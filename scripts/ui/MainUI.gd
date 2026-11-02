@@ -3,7 +3,6 @@ extends Control
 const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 
 @onready var game_manager: GameManager = $GameManager
-
 @onready var turn_label: Label = %TurnLabel
 @onready var country_name: Label = %CountryName
 @onready var approval_label: Label = %ApprovalLabel
@@ -20,19 +19,16 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var target_label: Label = %TargetLabel
 @onready var battle_label: Label = %BattleLabel
 @onready var feedback_label: Label = %FeedbackLabel
-
 @onready var tab_overview: Button = %TabOverview
 @onready var tab_economy: Button = %TabEconomy
 @onready var tab_military: Button = %TabMilitary
 @onready var tab_diplo: Button = %TabDiplo
 @onready var tab_gov: Button = %TabGov
-
 @onready var panel_overview: Control = %PanelOverview
 @onready var panel_economy: Control = %PanelEconomy
 @onready var panel_military: Control = %PanelMilitary
 @onready var panel_diplo: Control = %PanelDiplo
 @onready var panel_gov: Control = %PanelGov
-
 @onready var next_turn_btn: Button = %NextTurnButton
 @onready var tax_up_btn: Button = %TaxUpButton
 @onready var tax_down_btn: Button = %TaxDownButton
@@ -41,8 +37,11 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var invest_ene_btn: Button = %InvestEnergyButton
 @onready var recruit_inf_btn: Button = %RecruitInfButton
 @onready var recruit_tank_btn: Button = %RecruitTankButton
+@onready var recruit_air_btn: Button = %RecruitAirButton
+@onready var recruit_navy_btn: Button = %RecruitNavyButton
 @onready var train_btn: Button = %TrainButton
 @onready var nuclear_btn: Button = %NuclearButton
+@onready var defense_btn: Button = %DefenseButton
 @onready var loan_btn: Button = %LoanButton
 @onready var target_prev_btn: Button = %TargetPrevButton
 @onready var target_next_btn: Button = %TargetNextButton
@@ -51,6 +50,10 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var embassy_btn: Button = %EmbassyButton
 @onready var attack_btn: Button = %AttackButton
 @onready var peace_btn: Button = %PeaceButton
+@onready var recon_btn: Button = %ReconButton
+@onready var sabotage_btn: Button = %SabotageButton
+@onready var un_condemn_btn: Button = %UNCondemnButton
+@onready var un_sanctions_btn: Button = %UNSanctionsButton
 @onready var save_btn: Button = %SaveButton
 @onready var load_btn: Button = %LoadButton
 @onready var cycle_country_btn: Button = %CycleCountryButton
@@ -67,11 +70,17 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var buy_food_btn: Button = %BuyFoodButton
 @onready var sell_iron_btn: Button = %SellIronButton
 @onready var candidates_label: Label = %CandidatesLabel
+@onready var tutorial_overlay: ColorRect = %TutorialOverlay
+@onready var tut_title: Label = %TutTitle
+@onready var tut_body: Label = %TutBody
+@onready var tut_next: Button = %TutNext
 
 var _target_index: int = 0
 var _playable_index: int = 0
 var _map_instance: Control = null
 var _current_tab: String = "overview"
+var _tut_step: int = 0
+var _tut_steps: Array = []
 
 func _ready() -> void:
 	_connect_all()
@@ -80,7 +89,7 @@ func _ready() -> void:
 	game_manager.event_occurred.connect(_on_event)
 	game_manager.battle_report.connect(_on_battle)
 	game_manager.victory_achieved.connect(_on_victory)
-	game_manager.achievement_unlocked.connect(func(title): _flash("★ Achievement: %s" % title))
+	game_manager.achievement_unlocked.connect(func(title): _flash("★ %s" % title))
 	if ProjectSettings.get_setting("game/load_on_start", false):
 		ProjectSettings.set_setting("game/load_on_start", false)
 		game_manager.load_game()
@@ -91,7 +100,31 @@ func _ready() -> void:
 			_playable_index = i
 	_show_tab("overview")
 	_update_ui()
-	_flash("Command center online. Lead your nation.")
+	_flash("Command center online.")
+	_maybe_tutorial()
+
+func _maybe_tutorial() -> void:
+	if not Tutorial.should_show():
+		return
+	_tut_steps = Tutorial.steps()
+	_tut_step = 0
+	_show_tut_step()
+	tutorial_overlay.visible = true
+	tut_next.pressed.connect(_on_tut_next)
+
+func _show_tut_step() -> void:
+	if _tut_step >= _tut_steps.size():
+		tutorial_overlay.visible = false
+		Tutorial.mark_done()
+		return
+	var s = _tut_steps[_tut_step]
+	tut_title.text = s.title
+	tut_body.text = s.body
+	tut_next.text = "Got it" if _tut_step == _tut_steps.size() - 1 else "Next"
+
+func _on_tut_next() -> void:
+	_tut_step += 1
+	_show_tut_step()
 
 func _connect_all() -> void:
 	tab_overview.pressed.connect(func(): _show_tab("overview"))
@@ -107,8 +140,11 @@ func _connect_all() -> void:
 	invest_ene_btn.pressed.connect(func(): _invest("energy"))
 	recruit_inf_btn.pressed.connect(func(): _recruit("inf"))
 	recruit_tank_btn.pressed.connect(func(): _recruit("tank"))
+	recruit_air_btn.pressed.connect(func(): _recruit("air"))
+	recruit_navy_btn.pressed.connect(func(): _recruit("navy"))
 	train_btn.pressed.connect(_on_train)
 	nuclear_btn.pressed.connect(_on_nuclear)
+	defense_btn.pressed.connect(_on_defense)
 	loan_btn.pressed.connect(_on_loan)
 	target_prev_btn.pressed.connect(func(): _cycle_target(-1))
 	target_next_btn.pressed.connect(func(): _cycle_target(1))
@@ -117,6 +153,10 @@ func _connect_all() -> void:
 	embassy_btn.pressed.connect(_on_embassy)
 	attack_btn.pressed.connect(_on_attack)
 	peace_btn.pressed.connect(_on_peace)
+	recon_btn.pressed.connect(_on_recon)
+	sabotage_btn.pressed.connect(_on_sabotage)
+	un_condemn_btn.pressed.connect(func(): _un(UNSystem.ResType.CONDEMN))
+	un_sanctions_btn.pressed.connect(func(): _un(UNSystem.ResType.SANCTIONS))
 	save_btn.pressed.connect(_on_save)
 	load_btn.pressed.connect(_on_load)
 	cycle_country_btn.pressed.connect(_on_cycle_country)
@@ -140,13 +180,9 @@ func _show_tab(name: String) -> void:
 	panel_military.visible = name == "military"
 	panel_diplo.visible = name == "diplo"
 	panel_gov.visible = name == "gov"
-	_highlight_tabs()
-
-func _highlight_tabs() -> void:
 	var tabs = {"overview": tab_overview, "economy": tab_economy, "military": tab_military, "diplo": tab_diplo, "gov": tab_gov}
 	for k in tabs:
-		var b: Button = tabs[k]
-		b.modulate = Color(1.0, 0.92, 0.55) if k == _current_tab else Color(0.75, 0.8, 0.9)
+		tabs[k].modulate = Color(1.0, 0.92, 0.55) if k == _current_tab else Color(0.75, 0.8, 0.9)
 
 func _flash(msg: String, ok: bool = true) -> void:
 	feedback_label.text = msg
@@ -165,12 +201,11 @@ func _update_ui() -> void:
 	gdp_label.text = "GDP  %.1f B" % c.economy.gdp
 	treasury_label.text = "Treasury  %.1f B" % c.economy.treasury
 	debt_label.text = "Debt %.1f  |  Tax %.0f%%" % [c.economy.debt, c.economy.tax_rate * 100]
-	army_label.text = "Army power %.0f   Inf %d  Tanks %d  Air %d  Navy %d" % [
-		c.military.total_power, c.military.infantry, c.military.tanks, c.military.aircraft, c.military.navy]
-	nuclear_label.text = "Nuclear: %s (%.0f%%)   Training %.1f" % [
-		"ARMED" if c.military.has_nuclear_weapons else "No", c.military.nuclear_progress, c.military.training_level]
-	resources_label.text = "Food %.0f   Oil %.0f   Iron %.0f   Uranium %.1f" % [
-		c.economy.food, c.economy.oil, c.economy.iron, c.economy.uranium]
+	army_label.text = "Army %.0f  Inf %d  Tanks %d  Air %d  Navy %d  SF %d" % [
+		c.military.total_power, c.military.infantry, c.military.tanks, c.military.aircraft, c.military.navy, c.military.special_forces]
+	nuclear_label.text = "Nuclear: %s (%.0f%%)  Train %.1f  Def %.1f" % [
+		"ARMED" if c.military.has_nuclear_weapons else "No", c.military.nuclear_progress, c.military.training_level, c.military.defense_level]
+	resources_label.text = "Food %.0f  Oil %.0f  Iron %.0f  U %.1f" % [c.economy.food, c.economy.oil, c.economy.iron, c.economy.uranium]
 	dev_label.text = c.development.summary_line()
 	var cab_parts: Array[String] = []
 	for m in c.cabinet.list_hired():
@@ -179,7 +214,7 @@ func _update_ui() -> void:
 	var lines: Array[String] = []
 	for cand in game_manager.minister_candidates:
 		if cand is Minister and not c.cabinet.has_role(cand.role):
-			lines.append("%s — %s  skill %.1f  $%.1f/turn" % [cand.display_name, cand.role_name(), cand.skill, cand.salary])
+			lines.append("%s — %s  skill %.1f" % [cand.display_name, cand.role_name(), cand.skill])
 		if lines.size() >= 6:
 			break
 	candidates_label.text = "Available:\n" + ("\n".join(lines) if lines.size() else "All roles filled")
@@ -192,7 +227,7 @@ func _update_target_label() -> void:
 		return
 	var status = game_manager.player_country.diplomacy.get_status_text(t.id)
 	var total = maxi(game_manager.get_other_countries().size(), 1)
-	target_label.text = "%s  |  %s  |  Power %.0f  [%d/%d]" % [t.name, status, t.military.total_power, _target_index + 1, total]
+	target_label.text = "%s | %s | Power %.0f [%d/%d]" % [t.name, status, t.military.total_power, _target_index + 1, total]
 
 func _on_next_turn() -> void:
 	game_manager.next_turn()
@@ -220,6 +255,8 @@ func _recruit(type: String) -> void:
 	match type:
 		"inf": ok = c.military.recruit_infantry(10, c.economy)
 		"tank": ok = c.military.recruit_tanks(2, c.economy)
+		"air": ok = c.military.recruit_aircraft(1, c.economy)
+		"navy": ok = c.military.recruit_navy(1, c.economy)
 	_flash("Recruit %s: %s" % [type, "OK" if ok else "FAIL"], ok)
 	_update_ui()
 
@@ -231,6 +268,11 @@ func _on_train() -> void:
 func _on_nuclear() -> void:
 	var ok = game_manager.player_country.military.invest_nuclear(15.0, game_manager.player_country.economy)
 	_flash("Nuclear: %s" % ("OK" if ok else "FAIL"), ok)
+	_update_ui()
+
+func _on_defense() -> void:
+	var ok = game_manager.player_country.military.improve_defense(10.0, game_manager.player_country.economy)
+	_flash("Defense: %s" % ("OK" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_loan() -> void:
@@ -298,8 +340,26 @@ func _on_peace() -> void:
 	_flash("Peace: %s" % ("accepted" if ok else "not at war"), ok)
 	_update_ui()
 
+func _on_recon() -> void:
+	var msg = Intel.recon(game_manager.player_country, game_manager.get_target())
+	battle_label.text = msg
+	_flash("Recon complete", msg.find("Need") == -1)
+	_update_ui()
+
+func _on_sabotage() -> void:
+	var msg = Intel.sabotage(game_manager.player_country, game_manager.get_target())
+	battle_label.text = msg
+	_flash(msg.substr(0, mini(40, msg.length())), msg.find("SUCCESS") != -1)
+	_update_ui()
+
+func _un(kind: UNSystem.ResType) -> void:
+	var msg = UNSystem.propose(game_manager.player_country, game_manager.get_target(), kind, game_manager.countries)
+	battle_label.text = msg
+	_flash(msg.substr(0, mini(50, msg.length())), msg.find("PASSED") != -1)
+	_update_ui()
+
 func _on_save() -> void:
-	_flash("Saved" if game_manager.save_game() else "Save failed", true)
+	_flash("Saved" if game_manager.save_game() else "Save failed")
 
 func _on_load() -> void:
 	var ok = game_manager.load_game()
