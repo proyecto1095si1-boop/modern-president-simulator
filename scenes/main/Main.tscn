@@ -20,425 +20,499 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.06, 0.08, 0.12, 1)
+color = Color(0.05, 0.07, 0.11, 1)
 
-[node name="Scroll" type="ScrollContainer" parent="."]
+[node name="RootVBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+theme_override_constants/separation = 6
 
-[node name="VBox" type="VBoxContainer" parent="Scroll"]
+[node name="Header" type="HBoxContainer" parent="RootVBox"]
+layout_mode = 2
+
+[node name="CountryName" type="Label" parent="RootVBox/Header"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_colors/font_color = Color(0.95, 0.88, 0.5, 1)
+theme_override_font_sizes/font_size = 26
+text = "Argentina"
 
-[node name="Header" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="Title" type="Label" parent="Scroll/VBox/Header"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
-text = "President Command"
-
-[node name="TurnLabel" type="Label" parent="Scroll/VBox/Header"]
+[node name="TurnLabel" type="Label" parent="RootVBox/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Turn 1"
 
-[node name="CountryName" type="Label" parent="Scroll/VBox"]
+[node name="FeedbackLabel" type="Label" parent="RootVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.88, 0.5, 1)
-theme_override_font_sizes/font_size = 28
-text = "Argentina"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = ""
+autowrap_mode = 3
 
-[node name="EventLabel" type="Label" parent="Scroll/VBox"]
+[node name="EventLabel" type="Label" parent="RootVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_font_sizes/font_size = 14
-text = "No recent events"
-autowrap_mode = 3
-
-[node name="BattleLabel" type="Label" parent="Scroll/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.45, 1)
 theme_override_font_sizes/font_size = 13
 text = ""
 autowrap_mode = 3
 
-[node name="StatsPanel" type="PanelContainer" parent="Scroll/VBox"]
+[node name="BattleLabel" type="Label" parent="RootVBox"]
+unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.45, 1)
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 3
 
-[node name="StatsVBox" type="VBoxContainer" parent="Scroll/VBox/StatsPanel"]
+[node name="TabBar" type="HBoxContainer" parent="RootVBox"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="ApprovalLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="TabOverview" type="Button" parent="RootVBox/TabBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Approval: 48%"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Overview"
 
-[node name="StabilityLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="TabEconomy" type="Button" parent="RootVBox/TabBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Stability: 55%"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Economy"
 
-[node name="GDPLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="TabMilitary" type="Button" parent="RootVBox/TabBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "GDP: 640"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Military"
 
-[node name="TreasuryLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="TabDiplo" type="Button" parent="RootVBox/TabBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Treasury: 80"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Diplo"
 
-[node name="DebtLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="TabGov" type="Button" parent="RootVBox/TabBar"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Debt: 0 | Tax: 25%"
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+text = "Gov"
 
-[node name="ArmyLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="Scroll" type="ScrollContainer" parent="RootVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Content" type="VBoxContainer" parent="RootVBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="PanelOverview" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Army Power: 0"
+theme_override_constants/separation = 4
 
-[node name="NuclearLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="ApprovalLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Nuclear: No"
+text = "Approval"
 
-[node name="ResourcesLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="StabilityLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Food | Oil | Iron | U"
+text = "Stability"
 
-[node name="DevLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="GDPLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "GDP"
+
+[node name="TreasuryLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Treasury"
+
+[node name="DebtLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Debt"
+
+[node name="ArmyLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Army"
+
+[node name="NuclearLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Nuclear"
+
+[node name="ResourcesLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Resources"
+
+[node name="DevLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "Dev: —"
+text = "Dev"
 autowrap_mode = 3
 
-[node name="CabinetLabel" type="Label" parent="Scroll/VBox/StatsPanel/StatsVBox"]
+[node name="CabinetLabel" type="Label" parent="RootVBox/Scroll/Content/PanelOverview"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "Cabinet: empty"
+text = "Cabinet"
 autowrap_mode = 3
 
-[node name="TargetLabel" type="Label" parent="Scroll/VBox"]
+[node name="PanelEconomy" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EcoTitle" type="Label" parent="RootVBox/Scroll/Content/PanelEconomy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Economy"
+
+[node name="EcoTaxRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelEconomy"]
+layout_mode = 2
+
+[node name="TaxUpButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/EcoTaxRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Tax +"
+
+[node name="TaxDownButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/EcoTaxRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Tax -"
+
+[node name="LoanButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/EcoTaxRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Loan"
+
+[node name="EcoInvRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelEconomy"]
+layout_mode = 2
+
+[node name="InvestIndustryButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/EcoInvRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Industry"
+
+[node name="InvestAgriButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/EcoInvRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Agri"
+
+[node name="InvestEnergyButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/EcoInvRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Energy"
+
+[node name="TradeTitle" type="Label" parent="RootVBox/Scroll/Content/PanelEconomy"]
+layout_mode = 2
+text = "Trade with target"
+
+[node name="TradeRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelEconomy"]
+layout_mode = 2
+
+[node name="BuyOilButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/TradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Buy Oil"
+
+[node name="BuyFoodButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/TradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Buy Food"
+
+[node name="SellIronButton" type="Button" parent="RootVBox/Scroll/Content/PanelEconomy/TradeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 48)
+text = "Sell Iron"
+
+[node name="PanelMilitary" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MilTitle" type="Label" parent="RootVBox/Scroll/Content/PanelMilitary"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Military"
+
+[node name="MilRow1" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelMilitary"]
+layout_mode = 2
+
+[node name="RecruitInfButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow1"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 52)
+text = "+Infantry"
+
+[node name="RecruitTankButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow1"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 52)
+text = "+Tanks"
+
+[node name="MilRow2" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelMilitary"]
+layout_mode = 2
+
+[node name="TrainButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 52)
+text = "Train Army"
+
+[node name="NuclearButton" type="Button" parent="RootVBox/Scroll/Content/PanelMilitary/MilRow2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 52)
+text = "Nuclear R&D"
+
+[node name="PanelDiplo" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DiploTitle" type="Label" parent="RootVBox/Scroll/Content/PanelDiplo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Diplomacy & War"
+
+[node name="TargetLabel" type="Label" parent="RootVBox/Scroll/Content/PanelDiplo"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "Target: —"
+text = "Target"
 autowrap_mode = 3
 
-[node name="TargetRow" type="HBoxContainer" parent="Scroll/VBox"]
+[node name="TargetRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelDiplo"]
 layout_mode = 2
 
-[node name="TargetPrevButton" type="Button" parent="Scroll/VBox/TargetRow"]
+[node name="TargetPrevButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/TargetRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 48)
 text = "◀ Target"
 
-[node name="TargetNextButton" type="Button" parent="Scroll/VBox/TargetRow"]
+[node name="TargetNextButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/TargetRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 48)
 text = "Target ▶"
 
-[node name="DiploTitle" type="Label" parent="Scroll/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 17
-text = "Diplomacy & War"
-
-[node name="DiploRow" type="HBoxContainer" parent="Scroll/VBox"]
+[node name="DiploRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelDiplo"]
 layout_mode = 2
 
-[node name="DiplomatsButton" type="Button" parent="Scroll/VBox/DiploRow"]
+[node name="DiplomatsButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/DiploRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 48)
 text = "Diplomats"
 
-[node name="EmbassyButton" type="Button" parent="Scroll/VBox/DiploRow"]
+[node name="EmbassyButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/DiploRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 48)
 text = "Embassy"
 
-[node name="AllianceButton" type="Button" parent="Scroll/VBox/DiploRow"]
+[node name="AllianceButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/DiploRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 48)
 text = "Alliance"
 
-[node name="WarRow" type="HBoxContainer" parent="Scroll/VBox"]
+[node name="WarRow" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelDiplo"]
 layout_mode = 2
 
-[node name="AttackButton" type="Button" parent="Scroll/VBox/WarRow"]
+[node name="AttackButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/WarRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 52)
 theme_override_colors/font_color = Color(1, 0.45, 0.4, 1)
 text = "ATTACK"
 
-[node name="PeaceButton" type="Button" parent="Scroll/VBox/WarRow"]
+[node name="PeaceButton" type="Button" parent="RootVBox/Scroll/Content/PanelDiplo/WarRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 52)
+text = "Peace"
+
+[node name="PanelGov" type="VBoxContainer" parent="RootVBox/Scroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GovTitle" type="Label" parent="RootVBox/Scroll/Content/PanelGov"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Government"
+
+[node name="HireMinisterButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+theme_override_colors/font_color = Color(0.55, 0.95, 0.7, 1)
+text = "Hire next available minister"
+
+[node name="CandidatesLabel" type="Label" parent="RootVBox/Scroll/Content/PanelGov"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Candidates"
+autowrap_mode = 3
+
+[node name="DevTitle" type="Label" parent="RootVBox/Scroll/Content/PanelGov"]
+layout_mode = 2
+text = "National development"
+
+[node name="DevRow1" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelGov"]
+layout_mode = 2
+
+[node name="DevEduButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow1"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 46)
-text = "Peace"
-
-[node name="TradeTitle" type="Label" parent="Scroll/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 17
-text = "Trade with target"
-
-[node name="TradeRow" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="BuyOilButton" type="Button" parent="Scroll/VBox/TradeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Buy Oil"
-
-[node name="BuyFoodButton" type="Button" parent="Scroll/VBox/TradeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Buy Food"
-
-[node name="SellIronButton" type="Button" parent="Scroll/VBox/TradeRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Sell Iron"
-
-[node name="GovTitle" type="Label" parent="Scroll/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 17
-text = "Government & Development"
-
-[node name="GovRow" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="HireMinisterButton" type="Button" parent="Scroll/VBox/GovRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
-theme_override_colors/font_color = Color(0.6, 0.9, 0.7, 1)
-text = "Hire Minister"
-
-[node name="DevEduButton" type="Button" parent="Scroll/VBox/GovRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
 text = "Education"
 
-[node name="DevInfraButton" type="Button" parent="Scroll/VBox/GovRow"]
+[node name="DevInfraButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow1"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 text = "Infra"
 
-[node name="DevRow2" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="DevScienceButton" type="Button" parent="Scroll/VBox/DevRow2"]
+[node name="DevScienceButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow1"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 46)
 text = "Science"
 
-[node name="DevCultureButton" type="Button" parent="Scroll/VBox/DevRow2"]
+[node name="DevRow2" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelGov"]
+layout_mode = 2
+
+[node name="DevCultureButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 46)
 text = "Culture"
 
-[node name="DevJusticeButton" type="Button" parent="Scroll/VBox/DevRow2"]
+[node name="DevJusticeButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 46)
 text = "Justice"
 
-[node name="DevRow3" type="HBoxContainer" parent="Scroll/VBox"]
+[node name="DevRow3" type="HBoxContainer" parent="RootVBox/Scroll/Content/PanelGov"]
 layout_mode = 2
 
-[node name="DevReligionButton" type="Button" parent="Scroll/VBox/DevRow3"]
+[node name="DevReligionButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow3"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 46)
 text = "Religion"
 
-[node name="DevIdeologyButton" type="Button" parent="Scroll/VBox/DevRow3"]
+[node name="DevIdeologyButton" type="Button" parent="RootVBox/Scroll/Content/PanelGov/DevRow3"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 46)
 text = "Ideology"
 
-[node name="ActionsTitle" type="Label" parent="Scroll/VBox"]
+[node name="BottomBar" type="HBoxContainer" parent="RootVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
-text = "Economy & Military"
+theme_override_constants/separation = 6
 
-[node name="Row1" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="NextTurnButton" type="Button" parent="Scroll/VBox/Row1"]
+[node name="NextTurnButton" type="Button" parent="RootVBox/BottomBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 56)
 theme_override_font_sizes/font_size = 18
 text = "Next Turn ▶"
 
-[node name="LoanButton" type="Button" parent="Scroll/VBox/Row1"]
+[node name="MapButton" type="Button" parent="RootVBox/BottomBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 52)
-text = "Loan"
-
-[node name="Row2" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="TaxUpButton" type="Button" parent="Scroll/VBox/Row2"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Tax +"
-
-[node name="TaxDownButton" type="Button" parent="Scroll/VBox/Row2"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Tax -"
-
-[node name="Row3" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="InvestIndustryButton" type="Button" parent="Scroll/VBox/Row3"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Industry"
-
-[node name="InvestAgriButton" type="Button" parent="Scroll/VBox/Row3"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Agri"
-
-[node name="InvestEnergyButton" type="Button" parent="Scroll/VBox/Row3"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Energy"
-
-[node name="Row4" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="RecruitInfButton" type="Button" parent="Scroll/VBox/Row4"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "+Infantry"
-
-[node name="RecruitTankButton" type="Button" parent="Scroll/VBox/Row4"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "+Tanks"
-
-[node name="Row5" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="TrainButton" type="Button" parent="Scroll/VBox/Row5"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Train"
-
-[node name="NuclearButton" type="Button" parent="Scroll/VBox/Row5"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 42)
-text = "Nuclear"
-
-[node name="SystemTitle" type="Label" parent="Scroll/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 17
-text = "System"
-
-[node name="SysRow" type="HBoxContainer" parent="Scroll/VBox"]
-layout_mode = 2
-
-[node name="MapButton" type="Button" parent="Scroll/VBox/SysRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 56)
 theme_override_colors/font_color = Color(0.5, 0.85, 1, 1)
 text = "MAP"
 
-[node name="SaveButton" type="Button" parent="Scroll/VBox/SysRow"]
+[node name="SaveButton" type="Button" parent="RootVBox/BottomBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 56)
 text = "Save"
 
-[node name="LoadButton" type="Button" parent="Scroll/VBox/SysRow"]
+[node name="LoadButton" type="Button" parent="RootVBox/BottomBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 56)
 text = "Load"
 
-[node name="CycleCountryButton" type="Button" parent="Scroll/VBox/SysRow"]
+[node name="CycleCountryButton" type="Button" parent="RootVBox/BottomBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 56)
 text = "Switch"
