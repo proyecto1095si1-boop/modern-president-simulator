@@ -1,47 +1,73 @@
 # Modern President Simulator
 
-Open-source mobile geopolitical strategy game inspired by *MA 3 – President Simulator*.
+Open-source Godot 4 geopolitical strategy inspired by **MA 3 – President Simulator** (Oxiwyle), improved where players complain (ads, relation decay, shallow long-term play).
 
 **https://github.com/proyecto1095si1-boop/modern-president-simulator**
 
 ---
 
-## Status — **v0.5 Structured World Map**
+## v0.6 — What’s in the box
 
-### Implemented
-- [x] Full simulation loop (economy, military, diplomacy, battles, AI, events)
-- [x] **~130 countries** (`data/countries.json`)
-- [x] **Structured world map**
-  - Coordinates per country (`data/map_coords.json`)
-  - Regional blocks (N/S America, Europe, Africa, Asia, Oceania)
-  - Scroll/pan canvas 2000×1100
-  - Color coding: You / Target / War / Ally / Nuclear
-  - Tap country → Set as Target or Play as this nation
-- [x] Save / Load, victories, all nations playable
+### Screens
+- **Main Menu** — New Game / Continue / Quit (dark geopolitical theme)
+- **Country Select** — searchable list of ~130 nations + stat preview
+- **Command HUD** — economy, military, diplomacy, war, system
+- **World Map** — pan/scroll, region blocks, color-coded markers
 
-### How to open the map
-Press **MAP** in the System row → explore → **Set as Target** or **Play as this** → **Close**
+### Systems (MA3 parity + improvements)
+| System | Status |
+|--------|--------|
+| Economy (tax, loans, resources, buildings) | Yes |
+| Military (units, train, nuclear, battles) | Yes |
+| Diplomacy (embassies, alliances, peace) | Yes |
+| **Cabinet / Ministers** (7 roles, skills, salaries) | Yes |
+| **Development** (edu, infra, science, culture, justice, housing, sports) | Yes |
+| **Religion & Ideology** soft-power victory paths | Yes |
+| World map + ~130 countries | Yes |
+| AI nations | Yes |
+| Events (incl. disasters) | Yes |
+| Save / Load | Yes |
+| Offline, no ads | Yes |
 
-### Map structure
-| File | Role |
-|------|------|
-| `data/map_coords.json` | Normalized x,y for every country |
-| `scripts/map/MapController.gd` | Markers, colors, selection |
-| `scenes/map/WorldMap.tscn` | Scrollable map UI |
+### Victory paths
+Military · Economic · Religious · Ideological · Legacy
 
-Edit `map_coords.json` to reposition nations without code changes.
+### Visual identity
+- Dark navy / gold accent UI (command-center feel)
+- Map: blue = you, yellow = selected, red = war, green = ally, purple = nuclear
+- Named minister characters (Elena Vargas, Marcus Chen, Aisha Okonkwo, …)
 
 ---
 
-## How to play
+## How to run
 
-1. Godot 4.3+ → open project → **F5**
-2. **MAP** to pick targets / switch nation visually
-3. Economy, military, diplomacy, **ATTACK**, **Next Turn**
-4. **Save** / **Load**
+1. Install **Godot 4.3+**
+2. Open this project
+3. Press **F5** → Main Menu → **New Game** → pick a country → play
+
+### In-game
+- **MAP** — world map
+- Target ◀▶ / Attack / Diplomats / Alliance
+- Economy & military investments
+- Next Turn advances simulation + AI + events
+- Save / Load anytime
+
+### Code helpers (console / extend UI)
+```gdscript
+game_manager.hire_first_available_minister()
+game_manager.invest_development("education")  # or infrastructure, science, culture, justice, religion, ideology
+```
+
+---
+
+## vs MA 3 (design choices)
+
+**Kept:** nation sim core, multi-path victory, ministers idea, resources, nuclear, UN-style diplomacy depth roadmap.
+
+**Improved from reviews:** no aggressive ads/subscriptions; relations don’t collapse without cause as fast; disasters exist but aren’t pure progress-wipes; open data files for countries/map; offline-first.
 
 ---
 
 ## License
 
-MIT. Not affiliated with Oxiwyle Inc.
+MIT — not affiliated with Oxiwyle Inc.
