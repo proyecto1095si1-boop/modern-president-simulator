@@ -18,6 +18,10 @@ var _region_filter: String = "all"
 const REGIONS := ["all", "south_america", "north_america", "europe", "asia", "middle_east", "africa", "oceania"]
 
 func _ready() -> void:
+	CommandTheme.apply_to(self)
+	var start_style = CommandTheme.gold_button_style()
+	btn_start.add_theme_stylebox_override("normal", start_style)
+	btn_start.add_theme_color_override("font_color", CommandTheme.GOLD)
 	var world = WorldData.load_countries()
 	_countries.clear()
 	for c in world.values():
@@ -44,9 +48,15 @@ func _build_region_buttons() -> void:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(_set_region.bind(r))
 		region_row.add_child(b)
+		CommandTheme._style_button(b)
+		if r == _region_filter:
+			b.modulate = Color(1.1, 1.0, 0.7)
 
 func _set_region(r: String) -> void:
 	_region_filter = r
+	for b in region_row.get_children():
+		if b is Button:
+			b.modulate = Color(1.1, 1.0, 0.7) if (b as Button).text.to_lower().replace(" ", "_") == r or (r == "all" and (b as Button).text == "All") else Color.WHITE
 	_apply_filters(search.text)
 
 func _apply_filters(text: String) -> void:
