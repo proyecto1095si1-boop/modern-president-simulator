@@ -19,6 +19,19 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var event_label: Label = %EventLabel
 @onready var target_label: Label = %TargetLabel
 @onready var battle_label: Label = %BattleLabel
+@onready var feedback_label: Label = %FeedbackLabel
+
+@onready var tab_overview: Button = %TabOverview
+@onready var tab_economy: Button = %TabEconomy
+@onready var tab_military: Button = %TabMilitary
+@onready var tab_diplo: Button = %TabDiplo
+@onready var tab_gov: Button = %TabGov
+
+@onready var panel_overview: Control = %PanelOverview
+@onready var panel_economy: Control = %PanelEconomy
+@onready var panel_military: Control = %PanelMilitary
+@onready var panel_diplo: Control = %PanelDiplo
+@onready var panel_gov: Control = %PanelGov
 
 @onready var next_turn_btn: Button = %NextTurnButton
 @onready var tax_up_btn: Button = %TaxUpButton
@@ -31,7 +44,6 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var train_btn: Button = %TrainButton
 @onready var nuclear_btn: Button = %NuclearButton
 @onready var loan_btn: Button = %LoanButton
-
 @onready var target_prev_btn: Button = %TargetPrevButton
 @onready var target_next_btn: Button = %TargetNextButton
 @onready var diplomats_btn: Button = %DiplomatsButton
@@ -43,7 +55,6 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var load_btn: Button = %LoadButton
 @onready var cycle_country_btn: Button = %CycleCountryButton
 @onready var map_btn: Button = %MapButton
-
 @onready var hire_btn: Button = %HireMinisterButton
 @onready var dev_edu_btn: Button = %DevEduButton
 @onready var dev_infra_btn: Button = %DevInfraButton
@@ -55,12 +66,38 @@ const MAP_SCENE := preload("res://scenes/map/WorldMap.tscn")
 @onready var buy_oil_btn: Button = %BuyOilButton
 @onready var buy_food_btn: Button = %BuyFoodButton
 @onready var sell_iron_btn: Button = %SellIronButton
+@onready var candidates_label: Label = %CandidatesLabel
 
 var _target_index: int = 0
 var _playable_index: int = 0
 var _map_instance: Control = null
+var _current_tab: String = "overview"
 
 func _ready() -> void:
+	_connect_all()
+	game_manager.player_stats_updated.connect(_update_ui)
+	game_manager.turn_started.connect(func(t): turn_label.text = "Turn %d" % t)
+	game_manager.event_occurred.connect(_on_event)
+	game_manager.battle_report.connect(_on_battle)
+	game_manager.victory_achieved.connect(_on_victory)
+	if ProjectSettings.get_setting("game/load_on_start", false):
+		ProjectSettings.set_setting("game/load_on_start", false)
+		game_manager.load_game()
+	var ids = game_manager.get_playable_ids()
+	if game_manager.player_country:
+		var i = ids.find(game_manager.player_country.id)
+		if i >= 0:
+			_playable_index = i
+	_show_tab("overview")
+	_update_ui()
+	_flash("Command center online. Lead your nation.")
+
+func _connect_all() -> void:
+	tab_overview.pressed.connect(func(): _show_tab("overview"))
+	tab_economy.pressed.connect(func(): _show_tab("economy"))
+	tab_military.pressed.connect(func(): _show_tab("military"))
+	tab_diplo.pressed.connect(func(): _show_tab("diplo"))
+	tab_gov.pressed.connect(func(): _show_tab("gov"))
 	next_turn_btn.pressed.connect(_on_next_turn)
 	tax_up_btn.pressed.connect(func(): _change_tax(0.05))
 	tax_down_btn.pressed.connect(func(): _change_tax(-0.05))
@@ -94,46 +131,64 @@ func _ready() -> void:
 	buy_oil_btn.pressed.connect(_on_buy_oil)
 	buy_food_btn.pressed.connect(_on_buy_food)
 	sell_iron_btn.pressed.connect(_on_sell_iron)
-	
-	game_manager.player_stats_updated.connect(_update_ui)
-	game_manager.turn_started.connect(func(t): turn_label.text = "Turn %d" % t)
-	game_manager.event_occurred.connect(_on_event)
-	game_manager.battle_report.connect(_on_battle)
-	game_manager.victory_achieved.connect(_on_victory)
-	
-	if ProjectSettings.get_setting("game/load_on_start", false):
-		ProjectSettings.set_setting("game/load_on_start", false)
-		game_manager.load_game()
-	
-	var ids = game_manager.get_playable_ids()
-	if game_manager.player_country:
-		var i = ids.find(game_manager.player_country.id)
-		if i >= 0:
-			_playable_index = i
-	_update_ui()
-	print("[UI] Ready — %d nations" % ids.size())
+
+func _show_tab(name: String) -> void:
+	_current_tab = name
+	panel_overview.visible = name == "overview"
+	panel_economy.visible = name == "economy"
+	panel_military.visible = name == "military"
+	panel_diplo.visible = name == "diplo"
+	panel_gov.visible = name == "gov"
+	_highlight_tabs()
+
+func _highlight_tabs() -> void:
+	var tabs = {
+		"overview": tab_overview, "economy": tab_economy, "military": tab_military,
+		"diplo": tab_diplo, "gov": tab_gov
+	}
+	for k in tabs:
+		var b: Button = tabs[k]
+		if k == _current_tab:
+			b.modulate = Color(1.0, 0.92, 0.55)
+		else:
+			b.modulate = Color(0.75, 0.8, 0.9)
+
+func _flash(msg: String, ok: bool = true) -> void:
+	feedback_label.text = msg
+	feedback_label.modulate = Color(0.5, 1.0, 0.65) if ok else Color(1.0, 0.45, 0.4)
+	var tw = create_tween()
+	tw.tween_property(feedback_label, "modulate", Color.WHITE, 0.8)
 
 func _update_ui() -> void:
 	var c = game_manager.player_country
 	if not c:
 		return
-	country_name.text = "%s  (%d nations)" % [c.name, game_manager.countries.size()]
-	approval_label.text = "Approval: %.0f%%" % c.approval
-	stability_label.text = "Stability: %.0f%%" % c.stability
-	gdp_label.text = "GDP: %.1f B" % c.economy.gdp
-	treasury_label.text = "Treasury: %.1f B" % c.economy.treasury
-	debt_label.text = "Debt: %.1f B | Tax: %.0f%%" % [c.economy.debt, c.economy.tax_rate * 100]
-	army_label.text = "Army: %.0f  (Inf %d | Tanks %d | Air %d)" % [
-		c.military.total_power, c.military.infantry, c.military.tanks, c.military.aircraft]
-	nuclear_label.text = "Nuclear: %s (%.0f%%) | Train: %.1f" % [
-		"YES" if c.military.has_nuclear_weapons else "No", c.military.nuclear_progress, c.military.training_level]
-	resources_label.text = "Food: %.0f | Oil: %.0f | Iron: %.0f | U: %.1f" % [
+	country_name.text = c.name
+	turn_label.text = "Turn %d" % game_manager.current_turn
+	approval_label.text = "Approval  %.0f%%" % c.approval
+	stability_label.text = "Stability  %.0f%%" % c.stability
+	gdp_label.text = "GDP  %.1f B" % c.economy.gdp
+	treasury_label.text = "Treasury  %.1f B" % c.economy.treasury
+	debt_label.text = "Debt %.1f  |  Tax %.0f%%" % [c.economy.debt, c.economy.tax_rate * 100]
+	army_label.text = "Army power %.0f   Inf %d  Tanks %d  Air %d  Navy %d" % [
+		c.military.total_power, c.military.infantry, c.military.tanks, c.military.aircraft, c.military.navy]
+	nuclear_label.text = "Nuclear: %s (%.0f%%)   Training %.1f" % [
+		"ARMED" if c.military.has_nuclear_weapons else "No", c.military.nuclear_progress, c.military.training_level]
+	resources_label.text = "Food %.0f   Oil %.0f   Iron %.0f   Uranium %.1f" % [
 		c.economy.food, c.economy.oil, c.economy.iron, c.economy.uranium]
-	dev_label.text = "Dev: %s" % c.development.summary_line()
+	dev_label.text = c.development.summary_line()
 	var cab_parts: Array[String] = []
 	for m in c.cabinet.list_hired():
-		cab_parts.append("%s(%.1f)" % [m.role_name().substr(0, 3), m.skill])
-	cabinet_label.text = "Cabinet (%d): %s" % [c.cabinet.ministers.size(), ", ".join(cab_parts) if cab_parts.size() else "empty — Hire Minister"]
+		cab_parts.append("%s %.1f" % [m.role_name(), m.skill])
+	cabinet_label.text = "Cabinet (%d/7): %s" % [c.cabinet.ministers.size(), ", ".join(cab_parts) if cab_parts.size() else "empty"]
+	# Candidates preview
+	var lines: Array[String] = []
+	for cand in game_manager.minister_candidates:
+		if cand is Minister and not c.cabinet.has_role(cand.role):
+			lines.append("%s — %s  skill %.1f  $%.1f" % [cand.display_name, cand.role_name(), cand.skill, cand.salary])
+		if lines.size() >= 5:
+			break
+	candidates_label.text = "Available:\n" + ("\n".join(lines) if lines.size() else "All roles filled or none left")
 	_update_target_label()
 
 func _update_target_label() -> void:
@@ -142,16 +197,18 @@ func _update_target_label() -> void:
 		target_label.text = "Target: —"
 		return
 	var status = game_manager.player_country.diplomacy.get_status_text(t.id)
-	var total = game_manager.get_other_countries().size()
-	target_label.text = "Target: %s | %s | Power %.0f  [%d/%d]" % [
-		t.name, status, t.military.total_power, _target_index + 1, maxi(total, 1)]
+	var total = maxi(game_manager.get_other_countries().size(), 1)
+	target_label.text = "%s  |  %s  |  Power %.0f  [%d/%d]" % [
+		t.name, status, t.military.total_power, _target_index + 1, total]
 
 func _on_next_turn() -> void:
 	game_manager.next_turn()
+	_flash("Turn advanced. AI and events resolved.")
 
 func _change_tax(delta: float) -> void:
 	var eco = game_manager.player_country.economy
 	eco.set_tax_rate(eco.tax_rate + delta)
+	_flash("Tax rate → %.0f%%" % (eco.tax_rate * 100))
 	_update_ui()
 
 func _invest(type: String) -> void:
@@ -161,7 +218,7 @@ func _invest(type: String) -> void:
 		"industry": ok = eco.invest_industry(12.0)
 		"agri": ok = eco.invest_agriculture(10.0)
 		"energy": ok = eco.invest_energy(11.0)
-	event_label.text = "Invest %s: %s" % [type, "OK" if ok else "FAIL (treasury?)"]
+	_flash("Invest %s: %s" % [type, "OK" if ok else "Need treasury"], ok)
 	_update_ui()
 
 func _recruit(type: String) -> void:
@@ -170,46 +227,49 @@ func _recruit(type: String) -> void:
 	match type:
 		"inf": ok = c.military.recruit_infantry(10, c.economy)
 		"tank": ok = c.military.recruit_tanks(2, c.economy)
-	event_label.text = "Recruit %s: %s" % [type, "OK" if ok else "FAIL"]
+	_flash("Recruit %s: %s" % [type, "OK" if ok else "FAIL"], ok)
 	_update_ui()
 
 func _on_train() -> void:
 	var c = game_manager.player_country
-	event_label.text = "Train: %s" % ("OK" if c.military.train_army(1.0, c.economy) else "FAIL")
+	var ok = c.military.train_army(1.0, c.economy)
+	_flash("Train army: %s" % ("OK" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_nuclear() -> void:
 	var c = game_manager.player_country
-	event_label.text = "Nuclear: %s" % ("OK" if c.military.invest_nuclear(15.0, c.economy) else "FAIL")
+	var ok = c.military.invest_nuclear(15.0, c.economy)
+	_flash("Nuclear program: %s" % ("OK" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_loan() -> void:
-	var eco = game_manager.player_country.economy
-	event_label.text = "Loan: %s" % ("OK" if eco.take_loan(25.0) else "FAIL")
+	var ok = game_manager.player_country.economy.take_loan(25.0)
+	_flash("Loan: %s" % ("+25 B" if ok else "Denied"), ok)
 	_update_ui()
 
 func _on_hire() -> void:
-	event_label.text = game_manager.hire_first_available_minister()
+	var msg = game_manager.hire_first_available_minister()
+	_flash(msg, not msg.begins_with("Need") and not msg.begins_with("Cabinet"))
 	_update_ui()
 
 func _dev(sector: String) -> void:
 	var ok = game_manager.invest_development(sector)
-	event_label.text = "Develop %s: %s" % [sector, "OK" if ok else "FAIL"]
+	_flash("Develop %s: %s" % [sector, "OK" if ok else "Need treasury"], ok)
 	_update_ui()
 
 func _on_buy_oil() -> void:
 	var msg = Trade.buy_oil(game_manager.player_country, game_manager.get_target())
-	event_label.text = msg
+	_flash(msg, msg.begins_with("Bought"))
 	_update_ui()
 
 func _on_buy_food() -> void:
 	var msg = Trade.buy_food(game_manager.player_country, game_manager.get_target())
-	event_label.text = msg
+	_flash(msg, msg.begins_with("Bought"))
 	_update_ui()
 
 func _on_sell_iron() -> void:
 	var msg = Trade.sell_iron(game_manager.player_country, game_manager.get_target())
-	event_label.text = msg
+	_flash(msg, msg.begins_with("Sold"))
 	_update_ui()
 
 func _cycle_target(dir: int) -> void:
@@ -223,30 +283,38 @@ func _cycle_target(dir: int) -> void:
 	_update_target_label()
 
 func _on_diplomats() -> void:
-	event_label.text = "Diplomats: %s" % ("OK" if game_manager.diplomats_to_target() else "FAIL")
+	var ok = game_manager.diplomats_to_target()
+	_flash("Diplomats: %s" % ("sent" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_alliance() -> void:
-	event_label.text = "Alliance: %s" % ("OK" if game_manager.alliance_with_target() else "Need ~45 relation")
+	var ok = game_manager.alliance_with_target()
+	_flash("Alliance: %s" % ("formed" if ok else "need ~45 relation"), ok)
 	_update_ui()
 
 func _on_embassy() -> void:
-	event_label.text = "Embassy: %s" % ("OK" if game_manager.embassy_to_target() else "FAIL")
+	var ok = game_manager.embassy_to_target()
+	_flash("Embassy: %s" % ("opened" if ok else "FAIL"), ok)
 	_update_ui()
 
 func _on_attack() -> void:
-	battle_label.text = game_manager.attack_target()
+	var report = game_manager.attack_target()
+	battle_label.text = report
+	_flash("Battle resolved", true)
 	_update_ui()
 
 func _on_peace() -> void:
-	event_label.text = "Peace: %s" % ("OK" if game_manager.peace_with_target() else "FAIL")
+	var ok = game_manager.peace_with_target()
+	_flash("Peace: %s" % ("accepted" if ok else "not at war"), ok)
 	_update_ui()
 
 func _on_save() -> void:
-	event_label.text = "Save: %s" % ("OK" if game_manager.save_game() else "FAIL")
+	var ok = game_manager.save_game()
+	_flash("Game saved" if ok else "Save failed", ok)
 
 func _on_load() -> void:
-	event_label.text = "Load: %s" % ("OK" if game_manager.load_game() else "FAIL")
+	var ok = game_manager.load_game()
+	_flash("Game loaded" if ok else "No save", ok)
 	_update_ui()
 
 func _on_cycle_country() -> void:
@@ -259,6 +327,7 @@ func _on_cycle_country() -> void:
 	if not others.is_empty():
 		_target_index = 0
 		game_manager.set_target(others[0].id)
+	_flash("Now playing as %s" % game_manager.player_country.name)
 	_update_ui()
 
 func _on_open_map() -> void:
@@ -283,10 +352,12 @@ func _on_open_map() -> void:
 	)
 
 func _on_event(title: String, description: String) -> void:
-	event_label.text = "EVENT: %s — %s" % [title, description]
+	event_label.text = "%s — %s" % [title, description]
+	_flash("EVENT: %s" % title)
 
 func _on_battle(report: String) -> void:
 	battle_label.text = report
 
 func _on_victory(type: String, message: String) -> void:
 	event_label.text = "VICTORY (%s): %s" % [type.to_upper(), message]
+	_flash("VICTORY — %s" % type.to_upper())
