@@ -1,29 +1,28 @@
-# Modern President Simulator — v0.9
+# Modern President Simulator — v0.9.1
 
 Open-source Godot 4 geopolitical strategy inspired by MA 3.
 
 **https://github.com/proyecto1095si1-boop/modern-president-simulator**
 
-## Status (honest)
+## Design system (Command Aesthetic)
 
-| Layer | ~% |
+| Token | Use |
 |-------|-----|
-| Architecture | 70 |
-| Session feel | 55 |
-| vs MA 3 commercial | 40 |
+| Dark navy BG | Screens |
+| Gold accent | Titles, primary actions, selected tabs |
+| Danger red | ATTACK |
+| Success green | Hire / positive feedback |
+| Blue accent | MAP |
 
-## v0.9 highlights
+Theme builder: `themes/command_theme.gd` applied on Main Menu, Country Select and HUD.
 
-- **Tutorial** first-run overlay (3 steps)
-- **Region filters** + difficulty tags on country select
-- **Military**: aircraft, navy, defense investments
-- **Intel**: Recon + Sabotage
-- **UN**: Condemn / Sanctions resolutions (world vote)
-- Tabs, feedback bar, achievements, cabinet, trade, map
+## Features
+
+Tabs · Economy · Military (air/navy/defense) · Diplo (intel + UN) · Gov · Tutorial · Achievements · Map · Save
 
 ## Run
 
-Godot **4.3+** → F5 → New Game
+Godot **4.3+** → F5
 
 ## License
 
