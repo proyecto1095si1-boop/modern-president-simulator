@@ -1,47 +1,30 @@
-# Modern President Simulator — v0.7 (~70% playable)
+# Modern President Simulator — v0.8
 
-Open-source Godot 4 geopolitical strategy inspired by MA 3 – President Simulator.
+Open-source Godot 4 geopolitical strategy (inspired by MA 3).
 
 **https://github.com/proyecto1095si1-boop/modern-president-simulator**
 
-## Play now
+## Honest status
 
-1. Godot **4.3+** → open project → **F5**
-2. **New Game** → search/select nation → **START**
-3. Play the full loop: economy, cabinet, development, trade, diplomacy, war, map, save
+| Layer | Estimate |
+|-------|----------|
+| Systems architecture | ~65% |
+| Playable session feel | ~50% (up from ~40% after tabs + feedback) |
+| vs commercial MA 3 depth | ~35–40% |
 
-**Continue** loads `user://savegame.json` automatically.
+## v0.8 changes
 
-## Completeness checklist (~70%)
+- **Tab UI**: Overview · Economy · Military · Diplo · Gov
+- **Feedback bar** with color flash on every action
+- **Cabinet panel** lists available minister candidates
+- **Achievements** (first minister, nuclear, popular, etc.)
+- Bottom bar: Next Turn · MAP · Save · Load · Switch
 
-| Feature | Done |
-|---------|------|
-| Main menu + country select | ✅ |
-| ~130 countries (data-driven) | ✅ |
-| Economy (tax, loan, industry, agri, energy, resources) | ✅ |
-| Military (recruit, train, nuclear, battles) | ✅ |
-| Diplomacy (diplomats, embassy, alliance, peace, war) | ✅ |
-| **Trade** (buy oil/food, sell iron with target) | ✅ |
-| **Cabinet / Hire ministers** (7 roles, skills) | ✅ |
-| **Development** (edu, infra, science, culture, justice, religion, ideology) | ✅ |
-| World map (pan, colors, set target / play as) | ✅ |
-| AI nations (invest, recruit, rare wars) | ✅ |
-| Events + disasters | ✅ |
-| 5 victory paths | ✅ |
-| Save / Load / Continue | ✅ |
-| Offline, no ads | ✅ |
-| Polished art / flags / SFX / Android export | ⬜ ~30% left |
-| UN votes / provinces / spies deep layer | ⬜ |
+## Run
 
-## Core loop (session)
+Godot **4.3+** → open project → **F5**
 
-1. Hire ministers → boost systems  
-2. Invest economy + development  
-3. Trade with neighbors  
-4. Diplomacy or prepare army  
-5. **Next Turn** → AI + events  
-6. MAP to pick targets  
-7. Save often  
+New Game → pick country → use tabs → Next Turn
 
 ## License
 
