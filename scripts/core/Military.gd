@@ -1,8 +1,6 @@
 class_name Military
 extends RefCounted
 
-## Manages army composition, training, nuclear program and combat power.
-
 signal military_updated
 
 var infantry: int = 50
@@ -11,35 +9,29 @@ var aircraft: int = 5
 var navy: int = 3
 var special_forces: int = 2
 
-var training_level: float = 1.0       # 0.5 - 3.5
-var nuclear_progress: float = 0.0     # 0-100
+var training_level: float = 1.0
+var nuclear_progress: float = 0.0
 var has_nuclear_weapons: bool = false
-var defense_level: float = 1.0        # fortifications / doctrine
+var defense_level: float = 1.0
 
 var total_power: float = 0.0
-var maintenance_cost: float = 0.0     # per turn (paid by Economy)
+var maintenance_cost: float = 0.0
 
 func _init() -> void:
 	_recalculate_power()
 
 func process_turn(country: Country) -> void:
 	_recalculate_power()
-	
-	# Maintenance
 	maintenance_cost = (infantry * 0.05 + tanks * 0.4 + aircraft * 0.7 + navy * 1.0 + special_forces * 0.3) * training_level
 	if country.economy.treasury >= maintenance_cost:
 		country.economy.treasury -= maintenance_cost
 	else:
-		# Underfunded → desertion / lower training
 		training_level = maxf(training_level - 0.05, 0.5)
 		infantry = maxi(infantry - 2, 10)
-	
-	# Passive nuclear progress if already started
 	if nuclear_progress > 0.0 and nuclear_progress < 100.0:
 		nuclear_progress = minf(nuclear_progress + 1.2 + country.economy.science_level * 0.3, 100.0)
 		if nuclear_progress >= 100.0:
 			has_nuclear_weapons = true
-	
 	military_updated.emit()
 
 func recruit_infantry(amount: int, economy: Economy) -> bool:
@@ -69,6 +61,26 @@ func recruit_aircraft(amount: int, economy: Economy) -> bool:
 		return false
 	economy.treasury -= cost
 	aircraft += amount
+	_recalculate_power()
+	military_updated.emit()
+	return true
+
+func recruit_navy(amount: int, economy: Economy) -> bool:
+	var cost = amount * 12.0
+	if economy.treasury < cost or amount <= 0:
+		return false
+	economy.treasury -= cost
+	navy += amount
+	_recalculate_power()
+	military_updated.emit()
+	return true
+
+func recruit_special(amount: int, economy: Economy) -> bool:
+	var cost = amount * 5.0
+	if economy.treasury < cost or amount <= 0:
+		return false
+	economy.treasury -= cost
+	special_forces += amount
 	_recalculate_power()
 	military_updated.emit()
 	return true
