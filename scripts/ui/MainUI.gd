@@ -83,6 +83,8 @@ var _tut_step: int = 0
 var _tut_steps: Array = []
 
 func _ready() -> void:
+	CommandTheme.apply_to(self)
+	_style_special_buttons()
 	_connect_all()
 	game_manager.player_stats_updated.connect(_update_ui)
 	game_manager.turn_started.connect(func(t): turn_label.text = "Turn %d" % t)
@@ -102,6 +104,26 @@ func _ready() -> void:
 	_update_ui()
 	_flash("Command center online.")
 	_maybe_tutorial()
+
+func _style_special_buttons() -> void:
+	var gold = CommandTheme.gold_button_style()
+	next_turn_btn.add_theme_stylebox_override("normal", gold)
+	next_turn_btn.add_theme_color_override("font_color", CommandTheme.GOLD)
+	var danger := StyleBoxFlat.new()
+	danger.bg_color = Color(0.35, 0.12, 0.12)
+	danger.border_color = CommandTheme.DANGER
+	danger.set_border_width_all(1)
+	danger.set_corner_radius_all(6)
+	danger.content_margin_left = 10
+	danger.content_margin_right = 10
+	danger.content_margin_top = 10
+	danger.content_margin_bottom = 10
+	attack_btn.add_theme_stylebox_override("normal", danger)
+	attack_btn.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5))
+	map_btn.add_theme_color_override("font_color", CommandTheme.ACCENT)
+	hire_btn.add_theme_color_override("font_color", CommandTheme.SUCCESS)
+	country_name.add_theme_color_override("font_color", CommandTheme.GOLD)
+	feedback_label.add_theme_color_override("font_color", CommandTheme.TEXT)
 
 func _maybe_tutorial() -> void:
 	if not Tutorial.should_show():
@@ -182,13 +204,19 @@ func _show_tab(name: String) -> void:
 	panel_gov.visible = name == "gov"
 	var tabs = {"overview": tab_overview, "economy": tab_economy, "military": tab_military, "diplo": tab_diplo, "gov": tab_gov}
 	for k in tabs:
-		tabs[k].modulate = Color(1.0, 0.92, 0.55) if k == _current_tab else Color(0.75, 0.8, 0.9)
+		var b: Button = tabs[k]
+		if k == _current_tab:
+			b.modulate = Color(1.15, 1.05, 0.7)
+			b.add_theme_color_override("font_color", CommandTheme.GOLD)
+		else:
+			b.modulate = Color(0.85, 0.88, 0.92)
+			b.add_theme_color_override("font_color", CommandTheme.TEXT_DIM)
 
 func _flash(msg: String, ok: bool = true) -> void:
 	feedback_label.text = msg
-	feedback_label.modulate = Color(0.5, 1.0, 0.65) if ok else Color(1.0, 0.45, 0.4)
+	feedback_label.modulate = CommandTheme.SUCCESS if ok else CommandTheme.DANGER
 	var tw = create_tween()
-	tw.tween_property(feedback_label, "modulate", Color.WHITE, 0.85)
+	tw.tween_property(feedback_label, "modulate", CommandTheme.TEXT, 0.9)
 
 func _update_ui() -> void:
 	var c = game_manager.player_country
